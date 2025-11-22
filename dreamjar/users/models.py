@@ -11,7 +11,7 @@ class Child(models.Model):
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='children')
     name = models.CharField(max_length=30)
     date_of_birth = models.DateField(null=True, blank=True)
-    profile_picture = models.ImageField(upload_to='child_images/', null=True, blank=True)
+    profile_picture = models.URLField(max_length=200, null=True, blank=True)
     
     def __str__(self):
-        return f"{self.name}"
+        return self.name
