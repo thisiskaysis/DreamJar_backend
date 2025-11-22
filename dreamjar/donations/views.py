@@ -1,8 +1,9 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from django.http import Http404
+from .permissions import IsDonorOrReadOnly
 from .models import Donation
 from .serializers import DonationSerializer, DonationDetailSerializer
 from campaigns.models import Campaign
@@ -10,6 +11,8 @@ from campaigns.serializers import CampaignSerializer, CampaignDetailSerializer
 
 # Create your views here.
 class DonationList(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsDonorOrReadOnly]
+
     """
     List all donations or create a new donation.
     """
@@ -32,6 +35,11 @@ class DonationList(APIView):
             )
     
 class DonationDetail(APIView):
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsDonorOrReadOnly
+        ]
+    
     """
     Retrieve, update or delete a donation instance.
     """

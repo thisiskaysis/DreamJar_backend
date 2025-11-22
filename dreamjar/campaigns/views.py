@@ -1,15 +1,16 @@
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from django.http import Http404
+from .permissions import IsOwnerOrReadOnly
 from .models import Campaign
-from donations.models import Donation
 from .serializers import CampaignSerializer, CampaignDetailSerializer
-from donations.serializers import DonationSerializer
 
 # Create your views here. 
 class CampaignList(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
     def get(self, request):
         """
         Retrieve a list of all campaigns.
@@ -35,9 +36,16 @@ class CampaignList(APIView):
             )
     
 class CampaignDetail(APIView):
+
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        IsOwnerOrReadOnly
+        ]
+    
     def get_object(self, pk):
         try:
             campaign = Campaign.objects.get(pk=pk)
+            self.check_object_permissions(self.request, campaign)
             return campaign
         except Campaign.DoesNotExist:
             raise Http404
