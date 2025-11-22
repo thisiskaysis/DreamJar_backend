@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from django.apps import apps
-from campaigns.serializers import CampaignSerializer, CampaignDetailSerializer
 
 class DonationSerializer(serializers.ModelSerializer):
     donor = serializers.ReadOnlyField(source='donor.id') 
     class Meta:
-        donation = apps.get_model('donations.Donation')
+        model = apps.get_model('donations.Donation')
         fields = '__all__'
 
 class DonationDetailSerializer(DonationSerializer):

@@ -6,8 +6,6 @@ from django.http import Http404
 from .permissions import IsDonorOrReadOnly
 from .models import Donation
 from .serializers import DonationSerializer, DonationDetailSerializer
-from campaigns.models import Campaign
-from campaigns.serializers import CampaignSerializer, CampaignDetailSerializer
 
 # Create your views here.
 class DonationList(APIView):
