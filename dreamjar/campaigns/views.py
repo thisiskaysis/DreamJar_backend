@@ -1,11 +1,14 @@
+from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from .models import Campaign
+from donations.models import Donation
 from .serializers import CampaignSerializer, CampaignDetailSerializer
+from donations.serializers import DonationSerializer
 
-# Create your views here.
+# Create your views here. 
 class CampaignList(APIView):
     def get(self, request):
         """
@@ -21,7 +24,7 @@ class CampaignList(APIView):
         """
         serializer = CampaignSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED
