@@ -13,7 +13,7 @@ class DonationDetailSerializer(DonationSerializer):
         instance.amount = validated_data.get('amount', instance.amount)
         instance.comment = validated_data.get('comment', instance.comment)
         instance.anonymous = validated_data.get('anonymous', instance.anonymous)
-        instance.fundraiser = validated_data.get('fundraiser', instance.fundraiser)
-        instance.supporter = validated_data.get('supporter', instance.supporter)
+        instance.campaign = validated_data.get('campaign', instance.campaign)
+        instance.donor = validated_data.get('donor', instance.donor)
         instance.save()
         return instance
