@@ -75,6 +75,21 @@ class ChildList(APIView):
             status=status.HTTP_400_BAD_REQUEST
             )
     
+class ChildDetail(APIView):
+    def get_object(self, pk):
+        try:
+            return Child.objects.get(pk=pk)
+        except Child.DoesNotExist:
+            raise Http404
+    
+    def get(self, request, pk, format=None):
+        """
+        Retrieve a child by ID
+        """
+        child = self.get_object(pk)
+        serializer = ChildSerializer(child)
+        return Response(serializer.data)
+    
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         """
