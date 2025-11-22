@@ -1,10 +1,16 @@
 from django.db import models
+from campaigns.models import Campaign
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.utils import timezone
 
 # Create your models here.
 class Donation(models.Model):
+    campaign = models.ForeignKey(
+        Campaign,
+        on_delete=models.CASCADE,
+        related_name='donations'
+    )
     amount = models.IntegerField()
     comment = models.CharField(max_length=200, blank=True)
     anonymous = models.BooleanField()
