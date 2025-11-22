@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import Http404
 from .models import Campaign
-from .serializers import CampaignSerializer
+from .serializers import CampaignSerializer, CampaignDetailSerializer
 
 # Create your views here.
 class CampaignList(APIView):
@@ -44,5 +44,5 @@ class CampaignDetail(APIView):
         Retrieve a specific campaign by its ID.
         """
         campaign = self.get_object(pk)
-        serializer = CampaignSerializer(campaign)
+        serializer = CampaignDetailSerializer(campaign)
         return Response(serializer.data)

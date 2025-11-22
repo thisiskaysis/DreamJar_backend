@@ -7,7 +7,7 @@ class Donation(models.Model):
     comment = models.CharField(max_length=200, blank=True)
     anonymous = models.BooleanField()
     campaign = models.ForeignKey(
-        'Campaign',
+        'campaigns.Campaign',
         on_delete=models.CASCADE,
         related_name='donations'
     )
