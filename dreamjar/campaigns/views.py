@@ -30,3 +30,19 @@ class CampaignList(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
             )
+    
+class CampaignDetail(APIView):
+    def get_object(self, pk):
+        try:
+            campaign = Campaign.objects.get(pk=pk)
+            return campaign
+        except Campaign.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        """
+        Retrieve a specific campaign by its ID.
+        """
+        campaign = self.get_object(pk)
+        serializer = CampaignSerializer(campaign)
+        return Response(serializer.data)
