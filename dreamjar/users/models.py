@@ -3,7 +3,9 @@ from django.db import models
 
 # Create your models here.
 class Parent(AbstractUser):
-    
+    email = models.EmailField("email address", required=True)
+    #Do I need to override AbstractUser if I want email to be required??
+
     def __str__(self):
         return self.username
     
