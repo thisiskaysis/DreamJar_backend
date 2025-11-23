@@ -10,7 +10,7 @@ from .serializers import ParentSerializer, ChildSerializer
 # Create your views here.
 class ParentList(APIView):
     def get(self, request):
-        """List all parents (users)"""
+        """List all parents (users)""" # Do I want this? Should Users be private?
         parents = Parent.objects.all()
         serializer = ParentSerializer(parents, many=True)
         return Response(serializer.data)
@@ -30,7 +30,10 @@ class ParentList(APIView):
             )
     
 class ParentDetail(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
+    # Only logged in users can access their own details
+    # Does this work? Do I need to check that request.user matches the pk?
+
     def get_object(self, pk):
         try:
             return Parent.objects.get(pk=pk)
@@ -38,18 +41,17 @@ class ParentDetail(APIView):
             raise Http404
     
     def get(self, request, pk, format=None):
-        """
-        Retrieve a parent by ID
-        """
         parent = self.get_object(pk)
         serializer = ParentSerializer(parent)
         return Response(serializer.data)
+    
+    # Add methods for updating and deleting Parent user
 
 class ChildList(APIView):
     def get(self, request, format=None):
-        """
-        List all children
-        """
+        """List all children"""
+        # How to only list children of the logged-in parent?
+
         children = Child.objects.all()
         serializer = ChildSerializer(children, many=True)
         return Response(serializer.data)
@@ -57,7 +59,7 @@ class ChildList(APIView):
     def post(self, request, format=None):
         """
         Create a new child
-        The parent is set to the currently authenticated user.
+        The parent is set to the currently logged-in user.
         """
         serializer = ChildSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
@@ -72,6 +74,8 @@ class ChildList(APIView):
             )
     
 class ChildDetail(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get_object(self, pk):
         try:
             return Child.objects.get(pk=pk)
@@ -79,12 +83,13 @@ class ChildDetail(APIView):
             raise Http404
     
     def get(self, request, pk, format=None):
-        """
-        Retrieve a child by ID
-        """
+        # How to ensure only the parent of the child can access this?
+        # Should I leave open to list campaigns under a child for donations? eg, on Frontend, "See other campaigns for Timmy"
         child = self.get_object(pk)
         serializer = ChildSerializer(child)
         return Response(serializer.data)
+    
+    # Add methods for updating and deleting Child
     
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
