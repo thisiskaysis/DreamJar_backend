@@ -1,7 +1,7 @@
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from .models import Parent, Child
@@ -9,18 +9,14 @@ from .serializers import ParentSerializer, ChildSerializer
 
 # Create your views here.
 class ParentList(APIView):
-    def get(self, request, format=None):
-        """
-        List all parents
-        """
+    def get(self, request):
+        """List all parents (users)"""
         parents = Parent.objects.all()
         serializer = ParentSerializer(parents, many=True)
         return Response(serializer.data)
     
     def post(self, request, format=None):
-        """
-        Create a new parent
-        """
+        """Create a new parent (registration)"""
         serializer = ParentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -34,6 +30,7 @@ class ParentList(APIView):
             )
     
 class ParentDetail(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     def get_object(self, pk):
         try:
             return Parent.objects.get(pk=pk)
