@@ -6,8 +6,9 @@ class ParentSerializer(serializers.ModelSerializer):
         model = Parent
         fields = '__all__'
         extra_kwargs = {
-            'password': {'write_only': True}
-        }
+            'password': {'write_only': True, 'min_length': 8}
+        } #added min length for password field
+
     def create(self, validated_data):
         return Parent.objects.create_user(**validated_data)
     
