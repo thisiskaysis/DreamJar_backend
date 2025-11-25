@@ -9,35 +9,46 @@ from .serializers import CampaignSerializer, PublicCampaignSerializer, CampaignD
 from users.models import Child
 
 # Create your views here. 
-class CampaignList(APIView):
+class ChildCampaignList(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, pk):
-        """
-        Retrieve a list of all campaigns for your own child.
-        Only a Parent can view this list.
-        """
+    def get_object(self, pk):
         try:
             child = Child.objects.get(pk=pk)
             self.check_object_permissions(self.request, child)
             return child
         except Child.DoesNotExist:
             raise Http404
+
+    def get(self, request, pk):
+        """
+        Retrieve a list of all campaigns for your child.
+        Only a Parent can view this list.
+        """
+        child = self.get_object(pk)
+        campaigns = child.campaigns.all()
+        serializer = CampaignSerializer(campaigns, many=True)
         
         if request.user != child.parent:
             return Response(
-                {"detail": "You do not have permission to perform this action."},
+                {"detail": "You do not have permission to view these DreamJars."},
                 status=status.HTTP_403_FORBIDDEN
                 )
         
-        campaigns = child.owned_campaigns.all()
-        serializer = CampaignSerializer(campaigns, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
+    def post(self, request, pk):
         """
-        Create a new campaign.
+        Create a new campaign for your child.
         """
+        child = self.get_object(pk)
+        
+        if request.user != child.parent:
+            return Response(
+                {"detail": "You do not have permission to create a DreamJar for this child."},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        
         serializer = CampaignSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(child=request.user)
@@ -49,6 +60,15 @@ class CampaignList(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
             )
+    
+class PublicCampaignList(APIView):
+    """
+    Anyone can view and browse campaigns
+    """
+    def get(self, request):
+        campaigns = Campaign.objects.filter(is_open=True)
+        serializer = PublicCampaignSerializer(campaigns, many=True)
+        return Response(serializer.data)
     
 class CampaignDetail(APIView):
 
@@ -67,8 +87,42 @@ class CampaignDetail(APIView):
 
     def get(self, request, pk):
         """
-        Retrieve a specific campaign by its ID.
+        Parent (User) can view detailed info
+        Public can view limited info
+        """
+
+        campaign = self.get_object(pk)
+
+        #Is this already dealt with in permissions?
+        if request.user == campaign.child.parent:
+            serializer = CampaignDetailSerializer(campaign)
+        else:
+            serializer = PublicCampaignSerializer(campaign)
+        return Response(serializer.data)
+    
+    def put(self, request, pk):
+        """
+        Parent (User) can update their child's campaign
         """
         campaign = self.get_object(pk)
-        serializer = CampaignDetailSerializer(campaign)
-        return Response(serializer.data)
+        serializer = CampaignDetailSerializer(
+            instance=campaign,
+            data=request.data,
+            partial=True
+            )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def delete(self, request, pk):
+        """
+        Parent (User) can delete their child's campaign
+        """
+        campaign = self.get_object(pk)
+        campaign.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
