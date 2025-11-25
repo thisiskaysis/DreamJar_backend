@@ -10,6 +10,9 @@ from users.models import Child
 
 # Create your views here. 
 class ChildCampaignList(APIView):
+    """
+    For campaigns related to a specific child.
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
@@ -90,10 +93,8 @@ class CampaignDetail(APIView):
         Parent (User) can view detailed info
         Public can view limited info
         """
-
         campaign = self.get_object(pk)
 
-        #Is this already dealt with in permissions?
         if request.user == campaign.child.parent:
             serializer = CampaignDetailSerializer(campaign)
         else:
