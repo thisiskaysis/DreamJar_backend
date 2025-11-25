@@ -5,17 +5,32 @@ from rest_framework import status, permissions
 from django.http import Http404
 from .permissions import IsOwnerOrReadOnly
 from .models import Campaign
-from .serializers import CampaignSerializer, CampaignDetailSerializer
+from .serializers import CampaignSerializer, PublicCampaignSerializer, CampaignDetailSerializer
+from users.models import Child
 
 # Create your views here. 
 class CampaignList(APIView):
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, pk):
         """
-        Retrieve a list of all campaigns.
+        Retrieve a list of all campaigns for your own child.
+        Only a Parent can view this list.
         """
-        campaigns = Campaign.objects.all()
+        try:
+            child = Child.objects.get(pk=pk)
+            self.check_object_permissions(self.request, child)
+            return child
+        except Child.DoesNotExist:
+            raise Http404
+        
+        if request.user != child.parent:
+            return Response(
+                {"detail": "You do not have permission to perform this action."},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        
+        campaigns = child.owned_campaigns.all()
         serializer = CampaignSerializer(campaigns, many=True)
         return Response(serializer.data)
 
