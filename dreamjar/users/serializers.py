@@ -17,7 +17,6 @@ class ParentSerializer(serializers.ModelSerializer):
         if len(value) < 3:
             raise serializers.ValidationError("Username must be at least 3 characters long.")
         return value
-    #Does this get dealt with in AbstractUser?
     
 class ChildSerializer(serializers.ModelSerializer):
     class Meta:
