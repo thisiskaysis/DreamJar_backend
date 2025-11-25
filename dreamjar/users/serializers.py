@@ -16,8 +16,6 @@ class ParentSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if len(value) < 3:
             raise serializers.ValidationError("Username must be at least 3 characters long.")
-        if Parent.objects.filter(username=value).exists():
-            raise serializers.ValidationError("Username already exists.")
         return value
     #Does this get dealt with in AbstractUser?
     
