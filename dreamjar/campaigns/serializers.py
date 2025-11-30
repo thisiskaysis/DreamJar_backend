@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from django.apps import apps
 from donations.serializers import DonationSerializer
-from users.models import Child
 from campaigns.models import Campaign
 
 class CampaignSerializer(serializers.ModelSerializer):

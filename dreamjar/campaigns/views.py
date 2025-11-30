@@ -3,7 +3,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.http import Http404
-from .permissions import IsOwnerOrReadOnly
 from .models import Campaign
 from .serializers import CampaignSerializer, PublicCampaignSerializer, CampaignDetailSerializer
 from users.models import Child
