@@ -1,8 +1,6 @@
 from django.db import models
 from campaigns.models import Campaign
 from django.contrib.auth import get_user_model
-from django.conf import settings
-from django.utils import timezone
 
 # Create your models here.
 class Donation(models.Model):
@@ -30,4 +28,4 @@ class Donation(models.Model):
     donor_email = models.EmailField(blank=True)
 
     def __str__(self):
-        return f"{self.donor.username} has donated {self.amount} to {self.campaign.child.name}"
+        return f"{self.donor.name} has donated {self.amount} to {self.campaign.child.name}"

@@ -10,7 +10,7 @@ from .serializers import ParentSerializer, ChildSerializer
 # Create your views here.
 class ParentList(APIView):
     def get(self, request):
-        """List all parents (users)""" # Do I want this? Should Users be private?
+        """List all parents (users)"""
         parents = Parent.objects.all()
         serializer = ParentSerializer(parents, many=True)
         return Response(serializer.data)
@@ -31,8 +31,6 @@ class ParentList(APIView):
     
 class ParentDetail(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    # Only logged in users can access their own details
-    # Does this work? Do I need to check that request.user matches the pk?
 
     def get_object(self, pk):
         try:
@@ -42,15 +40,33 @@ class ParentDetail(APIView):
     
     def get(self, request, pk, format=None):
         parent = self.get_object(pk)
+        if request.user != parent.user:
+            return Response(
+                {'detail': 'Not authorized to view this user.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
         serializer = ParentSerializer(parent)
         return Response(serializer.data)
     
-    # Add methods for updating and deleting Parent user
+    def put(self, request, pk):
+        """Update your own profile only"""
+        parent = self.get_object(pk)
+        if request.user != parent.user:
+            return Response(
+                {'detail': 'Not authorized to update this user.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        serializer = ParentSerializer(parent, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+            )
 
 class ChildList(APIView):
     def get(self, request, format=None):
-        """List all children"""
-        # How to only list children of the logged-in parent?
 
         children = Child.objects.all()
         serializer = ChildSerializer(children, many=True)

@@ -3,6 +3,7 @@ from users.models import Child
 
 # Create your models here.
 class Campaign(models.Model):
+    """Links campaign to a child and contains campaign details"""
     title = models.CharField(max_length=200)
     description = models.TextField()
     goal = models.IntegerField()

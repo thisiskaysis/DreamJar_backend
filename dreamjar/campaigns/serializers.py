@@ -20,7 +20,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         # Connect the campaign to the child from context
-        child_id = self.context['child_id']
+        child_id = self.context.get('child_id')
         child = Child.objects.get(id=child_id)
         campaign = Campaign.objects.create(child=child, **validated_data)
         return campaign
@@ -37,17 +37,17 @@ class PublicCampaignSerializer(serializers.ModelSerializer):
     Hides sensitive information
     Shows ONLY child's first name
     """
-    child_first_name = serializers.SerializerMethodField()
+    child_name = serializers.SerializerMethodField()
     total_raised = serializers.SerializerMethodField()
     donor_count = serializers.SerializerMethodField()
     percentage_funded = serializers.SerializerMethodField()
 
     class Meta:
         model = apps.get_model('campaigns.Campaign')
-        fields = ['id', 'child_first_name', 'title', 'description', 'goal', 'image', 'is_open', 'date_created', 'total_raised', 'donor_count', 'percentage_funded']
+        fields = ['id', 'child_name', 'title', 'description', 'goal', 'image', 'is_open', 'date_created', 'total_raised', 'donor_count', 'percentage_funded']
     
-    def get_child_first_name(self, obj):
-        return obj.child.name.split()[0] if obj.child.name else "A child"
+    def get_child_name(self, obj):
+        return obj.child.name
     
     def get_total_raised(self, obj):
         return sum(donation.amount for donation in obj.donations.all())
