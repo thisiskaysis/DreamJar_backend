@@ -36,7 +36,7 @@ class ChildCampaignList(APIView):
                 status=status.HTTP_403_FORBIDDEN
                 )
         
-        campaigns = child.campaigns.all()
+        campaigns = child.owned_campaigns.all()
         serializer = CampaignSerializer(campaigns, many=True)
         return Response(serializer.data)
 
@@ -53,11 +53,10 @@ class ChildCampaignList(APIView):
                 )
         
         serializer = CampaignSerializer(
-            data=request.data,
-            context={'request': request, 'child.id': child.id}
+            data=request.data
             )
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(child=child)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED

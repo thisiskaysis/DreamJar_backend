@@ -10,20 +10,10 @@ class CampaignSerializer(serializers.ModelSerializer):
     Shows full details including child info
     Used when parents view/manage their own children's campaigns
     """
-    child = serializers.ReadOnlyField(source='child.id')
-    child_name = serializers.ReadOnlyField(source='child.name')
-    
     class Meta:
         model = apps.get_model('campaigns.Campaign')
         fields = '__all__'
         read_only_fields = ['child', 'date_created']
-    
-    def create(self, validated_data):
-        # Connect the campaign to the child from context
-        child_id = self.context.get('child_id')
-        child = Child.objects.get(id=child_id)
-        campaign = Campaign.objects.create(child=child, **validated_data)
-        return campaign
     
     def validate_goal(self, value):
         if value <= 0:
