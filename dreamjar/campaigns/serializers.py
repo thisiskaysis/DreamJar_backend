@@ -11,7 +11,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     Used when parents view/manage their own children's campaigns
     """
     class Meta:
-        model = apps.get_model('campaigns.Campaign')
+        model = Campaign
         fields = '__all__'
         read_only_fields = ['child', 'date_created']
     
@@ -20,6 +20,7 @@ class CampaignSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("DreamJar goal must be greater than zero.")
         if value > 100000:
             raise serializers.ValidationError("DreamJar goal exceed maximum amount ($100,000)")
+        return value
 
 class PublicCampaignSerializer(serializers.ModelSerializer):
     """
@@ -68,5 +69,5 @@ class CampaignDetailSerializer(CampaignSerializer):
         instance.save()
         return instance
     
-    def get_total_raised(self, obj):
+    def get_total_donated(self, obj):
         return sum(donation.amount for donation in obj.donations.all())

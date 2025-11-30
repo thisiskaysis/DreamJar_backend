@@ -17,9 +17,7 @@ class ChildCampaignList(APIView):
 
     def get_object(self, pk):
         try:
-            child = Child.objects.get(pk=pk)
-            self.check_object_permissions(self.request, child)
-            return child
+            return Child.objects.get(pk=pk)
         except Child.DoesNotExist:
             raise Http404
 
@@ -52,9 +50,8 @@ class ChildCampaignList(APIView):
                 status=status.HTTP_403_FORBIDDEN
                 )
         
-        serializer = CampaignSerializer(
-            data=request.data
-            )
+        serializer = CampaignSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save(child=child)
             return Response(
@@ -131,7 +128,7 @@ class CampaignDetail(APIView):
         
         if request.user != campaign.child.parent:
             return Response(
-                {"detail": "You don't have permission to delete this campaign."},
+                {"detail": "You don't have permission to delete this DreamJar."},
                 status=status.HTTP_403_FORBIDDEN
             )
         
