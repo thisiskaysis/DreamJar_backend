@@ -29,15 +29,15 @@ class ChildCampaignList(APIView):
         Only a Parent can view this list.
         """
         child = self.get_object(pk)
-        campaigns = child.campaigns.all()
-        serializer = CampaignSerializer(campaigns, many=True)
-        
+
         if request.user != child.parent:
             return Response(
                 {"detail": "You do not have permission to view these DreamJars."},
                 status=status.HTTP_403_FORBIDDEN
                 )
         
+        campaigns = child.campaigns.all()
+        serializer = CampaignSerializer(campaigns, many=True)
         return Response(serializer.data)
 
     def post(self, request, pk):
@@ -52,9 +52,12 @@ class ChildCampaignList(APIView):
                 status=status.HTTP_403_FORBIDDEN
                 )
         
-        serializer = CampaignSerializer(data=request.data)
+        serializer = CampaignSerializer(
+            data=request.data,
+            context={'request': request, 'child.id': child.id}
+            )
         if serializer.is_valid():
-            serializer.save(child=request.user)
+            serializer.save()
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED
@@ -74,16 +77,10 @@ class PublicCampaignList(APIView):
         return Response(serializer.data)
     
 class CampaignDetail(APIView):
-
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-        IsOwnerOrReadOnly
-        ]
     
     def get_object(self, pk):
         try:
             campaign = Campaign.objects.get(pk=pk)
-            self.check_object_permissions(self.request, campaign)
             return campaign
         except Campaign.DoesNotExist:
             raise Http404
@@ -106,6 +103,13 @@ class CampaignDetail(APIView):
         Parent (User) can update their child's campaign
         """
         campaign = self.get_object(pk)
+
+        if request.user != campaign.child.parent:
+            return Response(
+                {'detail': "You don't have permission to edit this campaign."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = CampaignDetailSerializer(
             instance=campaign,
             data=request.data,
@@ -125,5 +129,12 @@ class CampaignDetail(APIView):
         Parent (User) can delete their child's campaign
         """
         campaign = self.get_object(pk)
+        
+        if request.user != campaign.child.parent:
+            return Response(
+                {"detail": "You don't have permission to delete this campaign."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
         campaign.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
