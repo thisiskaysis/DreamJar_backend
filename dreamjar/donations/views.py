@@ -25,23 +25,29 @@ class CampaignDonationList(APIView):
         serializer = PublicDonationSerializer(donations, many=True)
         return Response(serializer.data)
 
-    def post(self, request):
+    def post(self, request, pk):
         """
         Make a donation - with or without an account.
-
         1. Logged in users can make donations that are linked to their account.
         2. Anonymous users can make donations by providing their name and email.
-        
-        SEE IF I CAN MAKE THIS WORK:
-        - User fills form
-        - Submits
-        - Redirected to Stripe
-        - Stripe confirms donation
-        - Donation saved in DB
         """
+        campaign = self.get_object(pk)
+
+        if not campaign.is_open:
+            return Response(
+                {'detail': "This campaign is closed and no longer accepting donations."}
+            )
+        
+        #Add campaign to data - I think this is what I need here if I want Stripe to work, bc data will come from Stripe?
+        data = request.data.copy()
+        data['campaign'] = campaign.id
+
         serializer = DonationSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(donor=request.user)
+            if request.user.is_authenticated:
+                serializer.save(donor=request.user)
+            else:
+                serializer.save()
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED
@@ -51,18 +57,12 @@ class CampaignDonationList(APIView):
             status=status.HTTP_400_BAD_REQUEST
             )
     
-class DonationDetail(APIView):
-    permission_classes = [
-        permissions.IsAuthenticatedOrReadOnly,
-        IsDonorOrReadOnly
-        ]
+class DonationList(APIView):
     """
-    Retrieve, update or delete a donation instance.
+    View donations you have made (authenticated users only)
     """
-    def get_object(self, pk):
-        try:
-            donation = Donation.objects.get(pk=pk)
-            self.check_object_permissions(self.request, donation)
-            return donation
-        except Donation.DoesNotExist:
-            raise Http404
+    permission_classes = [permissions.IsAuthenticated]
+    def get(self, request):
+        donations = Donation.objects.filter(donor=request.user)
+        serializer = DonationSerializer(donations, many=True)
+        return Response(serializer.data)
