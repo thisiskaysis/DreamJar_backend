@@ -13,9 +13,7 @@ class CampaignDonationList(APIView):
 
     def get_object(self, pk):
         try:
-            campaign = Campaign.objects.get(pk=pk)
-            self.check_object_permissions(self.request, campaign)
-            return campaign
+            return Campaign.objects.get(pk=pk)
         except Campaign.DoesNotExist:
             raise Http404
 
@@ -38,16 +36,16 @@ class CampaignDonationList(APIView):
                 {'detail': "This campaign is closed and no longer accepting donations."}
             )
         
-        #Add campaign to data - I think this is what I need here if I want Stripe to work, bc data will come from Stripe?
-        data = request.data.copy()
-        data['campaign'] = campaign.id
-
-        serializer = DonationSerializer(data=request.data)
+        serializer = DonationSerializer(
+            data=request.data,
+            context={'request': request}
+            )
+        
         if serializer.is_valid():
             if request.user.is_authenticated:
-                serializer.save(donor=request.user)
+                serializer.save(campaign=campaign, donor=request.user)
             else:
-                serializer.save()
+                serializer.save(campaign=campaign)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED

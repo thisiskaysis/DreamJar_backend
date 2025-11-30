@@ -7,11 +7,10 @@ class DonationSerializer(serializers.ModelSerializer):
     Handles both authenticated and anonymous donations
     Used for creating donations and showing full details to campaign owners
     """
-    donor_name = serializers.SerializerMethodField()
     class Meta:
         model = apps.get_model('donations.Donation')
         fields = '__all__'
-        read_only_fields = ('donor', 'date_donated')
+        read_only_fields = ('donor', 'date_donated', 'campaign')
 
     def validate(self, data):
         """
@@ -32,7 +31,7 @@ class DonationSerializer(serializers.ModelSerializer):
 
     def get_donor_name(self, obj):
         if obj.donor: #if it's a logged in user
-            return obj.donor.name
+            return obj.donor.first_name
         if obj.anonymous: #if it's an anonymous donation
             return "Anonymous"
         return obj.donor_name
@@ -51,7 +50,7 @@ class PublicDonationSerializer(DonationSerializer):
     """
     class Meta(DonationSerializer.Meta):
         model =  apps.get_model('donations.Donation')
-        fields = ['id', 'amount', 'date_donated', 'donor_username', 'comment']
+        fields = ['id', 'amount', 'date_donated', 'donor_name', 'comment']
 
     def get_donor_name(self, obj):
         if obj.donor:
