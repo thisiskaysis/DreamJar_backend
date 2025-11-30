@@ -9,12 +9,11 @@ from .serializers import ParentSerializer, ChildSerializer
 
 # Create your views here.
 class ParentList(APIView):
-    def get(self, request):
-        """List all parents (users)"""
-        parents = Parent.objects.all()
-        serializer = ParentSerializer(parents, many=True)
-        return Response(serializer.data)
-    
+    """
+    Registration only - no GET method
+    No browsing of parents as campaigns will be linked to children
+    """
+
     def post(self, request, format=None):
         """Create a new parent (registration)"""
         serializer = ParentSerializer(data=request.data)
@@ -40,20 +39,19 @@ class ParentDetail(APIView):
     
     def get(self, request, pk, format=None):
         parent = self.get_object(pk)
-        if request.user != parent.user:
+        if request.user != parent:
             return Response(
-                {'detail': 'Not authorized to view this user.'},
+                {'detail': "You don't have permission to view this profile."},
                 status=status.HTTP_403_FORBIDDEN
                 )
         serializer = ParentSerializer(parent)
         return Response(serializer.data)
     
     def put(self, request, pk):
-        """Update your own profile only"""
         parent = self.get_object(pk)
-        if request.user != parent.user:
+        if request.user != parent:
             return Response(
-                {'detail': 'Not authorized to update this user.'},
+                {'detail': "You don't have permission to edit this profile."},
                 status=status.HTTP_403_FORBIDDEN
                 )
         serializer = ParentSerializer(parent, data=request.data, partial=True)
@@ -66,17 +64,36 @@ class ParentDetail(APIView):
             )
 
 class ChildList(APIView):
-    def get(self, request, format=None):
+    permission_classes = [permissions.IsAuthenticated]
 
-        children = Child.objects.all()
+    def get_parent(self, pk):
+        try:
+            return Parent.objects.get(pk=pk)
+        except Parent.DoesNotExist:
+            raise Http404
+
+    def get(self, request, pk):
+        parent = self.get_parent(pk)
+
+        if request.user != parent:
+            return Response(
+                {'detail': "You don't have permission to view these children."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        children = parent.children.all()
         serializer = ChildSerializer(children, many=True)
         return Response(serializer.data)
     
-    def post(self, request, format=None):
-        """
-        Create a new child
-        The parent is set to the currently logged-in user.
-        """
+    def post(self, request, pk):
+        parent = self.get_parent(pk)
+
+        if request.user != parent:
+            return Response(
+                {'detail': "You can only create children for yourself."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = ChildSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
@@ -99,14 +116,53 @@ class ChildDetail(APIView):
             raise Http404
     
     def get(self, request, pk, format=None):
-        # How to ensure only the parent of the child can access this?
-        # Should I leave open to list campaigns under a child for donations? eg, on Frontend, "See other campaigns for Timmy"
         child = self.get_object(pk)
+
+        if request.user != child.parent:
+            return Response(
+                {'detail': "You don't have permission to view this child."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = ChildSerializer(child)
         return Response(serializer.data)
     
-    # Add methods for updating and deleting Child
+    def put(self, request, pk):
+        child = self.get_object(pk)
+
+        if request.user != child.parent:
+            return Response(
+                {'detail': "You don't have permission to edit this child."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        serializer = ChildSerializer(child, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+            )
     
+    def delete(self, request, pk):
+        child = self.get_object(pk)
+
+        if request.user != child.parent:
+            return Response(
+                {"detail": "You don't have permission to delete this child."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        active_campaigns = child.owned_campaigns.filter(is_open=True).count()
+        if active_campaigns > 0:
+            return Response(
+                {'detail': "Cannot delete child with active campaigns."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        child.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         """
@@ -123,5 +179,6 @@ class CustomAuthToken(ObtainAuthToken):
         return Response({
             'token': token.key,
             'user_id': user.id,
+            'username': user.username,
             'email': user.email
         })
