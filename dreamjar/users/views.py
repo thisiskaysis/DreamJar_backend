@@ -196,8 +196,3 @@ class GoogleLoginCallback(APIView):
                 'email': request.user.email,
             }
         })
-        
-        return Response(
-            {'error': 'Authentication failed'},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
