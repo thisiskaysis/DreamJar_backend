@@ -172,23 +172,30 @@ class ChildDetail(APIView):
 class GoogleLoginCallback(APIView):
     """
     Handle Google OAuth callback and return JWT token
-    This is called after allauth completes Google OAuth flow
     """
     permission_classes = [AllowAny]
 
     def get(self, request):
-        if request.user.is_authenticated:
-            refresh = RefreshToken.for_user(request.user)
+        #User should be authenticated by allauth at this point
+        if not request.user.is_authenticated:
+            return Response(
+                {
+                    'error': 'Authentication failed',
+                    'detail': 'User not authenticated after OAuth callback'
+                }, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        refresh = RefreshToken.for_user(request.user)
 
-            return Response({
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-                'user': {
-                    'id': request.user.id,
-                    'username': request.user.username,
-                    'email': request.user.email,
-                }
-            })
+        return Response({
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'email': request.user.email,
+            }
+        })
         
         return Response(
             {'error': 'Authentication failed'},
