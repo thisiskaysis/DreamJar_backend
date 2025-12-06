@@ -36,42 +36,43 @@ DEBUG = os.environ.get(
 ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_ALLOW_ALL = True
 
-
 # Application definition
 
 INSTALLED_APPS = [
-    'campaigns.apps.CampaignsConfig',
-    'donations.apps.DonationsConfig',
-    'users.apps.UsersConfig',
-    'rest_framework',
-    'allauth',
-    'allauth.account',
-    'auth_kit',
-    'rest_framework.authtoken',
-    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework.authtoken',
+    'corsheaders',
+    'campaigns.apps.CampaignsConfig',
+    'donations.apps.DonationsConfig',
+    'users.apps.UsersConfig',
+    'allauth',
+    'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'auth_kit.social',
-    'drf_spectacular',
+    # 'core',
+]
+
+SITE_ID = 1
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',  # For development
-    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'auth_kit.authentication.JWTCookieAuthentication',
-        # 'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication'
     ],
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+
 
 AUTH_USER_MODEL = 'users.Parent'
 
@@ -139,17 +140,6 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-        'APP': {
-            'client_id': os.environ.get("GOOGLE_CLIENT_ID"),
-            'secret': os.environ.get("GOOGLE_SECRET"),
-        }
-    },
-}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
