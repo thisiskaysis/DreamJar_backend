@@ -3,10 +3,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from django.http import Http404
-from .permissions import IsDonorOrReadOnly
 from .models import Donation
 from campaigns.models import Campaign
-from .serializers import DonationSerializer, PublicDonationSerializer, DonationDetailSerializer
+from .serializers import DonationSerializer, PublicDonationSerializer
 
 # Create your views here.
 class CampaignDonationList(APIView):

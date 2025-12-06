@@ -1,13 +1,11 @@
 from django.shortcuts import render
 from django.http import Http404
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework import status, permissions
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.authtoken.models import Token
 from .models import Parent, Child
 from .serializers import ParentSerializer, ChildSerializer
 
@@ -17,23 +15,27 @@ class ParentList(APIView):
     Registration only - no GET method
     No browsing of parents as campaigns will be linked to children
     """
+    permission_classes = [AllowAny]
 
     def post(self, request, format=None):
-        """Create a new parent (registration)"""
+        """Registration - returns JWT token immediately after signup"""
         serializer = ParentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
-                )
+            user = serializer.save()
+            #Generate JWT token for immediate login
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'user': serializer.data,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            }, status=status.HTTP_201_CREATED)
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
             )
     
 class ParentDetail(APIView):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
         try:
@@ -166,36 +168,29 @@ class ChildDetail(APIView):
             )
         child.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-class CustomAuthToken(ObtainAuthToken):
-    def post(self, request, *args, **kwargs):
-        """
-        Custom authentication to return token and user info
-        """
-        serializer = self.serializer_class(
-            data=request.data,
-            context={'request': request}
-            )
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        
-        return Response({
-            'token': token.key,
-            'user_id': user.id,
-            'username': user.username,
-            'email': user.email
-        })
     
-def home(request):
-    return render(request, 'core/home.html')
+class GoogleLoginCallback(APIView):
+    """
+    Handle Google OAuth callback and return JWT token
+    This is called after allauth completes Google OAuth flow
+    """
+    permission_classes = [AllowAny]
 
-@api_view(['GET'])
-def get_jwt_token(request):
-    if not request.user.is_authenticated:
-        return Response({"error": "Please sign in first"}, status=401)
-    refresh = RefreshToken.for_user(request.user)
-    return Response({
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    })
+    def get(self, request):
+        if request.user.is_authenticated:
+            refresh = RefreshToken.for_user(request.user)
+
+            return Response({
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+                'user': {
+                    'id': request.user.id,
+                    'username': request.user.username,
+                    'email': request.user.email,
+                }
+            })
+        
+        return Response(
+            {'error': 'Authentication failed'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )

@@ -6,6 +6,5 @@ urlpatterns = [
     path('parents/<int:pk>/', views.ParentDetail.as_view()), #GET User
     path('parents/<int:pk>/children/', views.ChildList.as_view()), #List children under parents
     path('children/<int:pk>/', views.ChildDetail.as_view()), #GET/PUT/DELETE specific child
-    path('login/', views.home, name='home'),
-    path('token/', views.get_jwt_token, name='get_token'),
+    path('auth/google/callback/', views.GoogleLoginCallback.as_view(), name='google_callback')
 ]

@@ -58,8 +58,3 @@ class PublicDonationSerializer(DonationSerializer):
         if obj.anonymous:
             return "Anonymous"
         return obj.donor_name or "Anonymous"
-
-    
-
-class DonationDetailSerializer(DonationSerializer):
-    pass
