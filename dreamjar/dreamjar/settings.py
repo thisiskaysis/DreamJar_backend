@@ -72,7 +72,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-
+SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
 
 AUTH_USER_MODEL = 'users.Parent'
 
@@ -94,7 +94,7 @@ ROOT_URLCONF = 'dreamjar.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

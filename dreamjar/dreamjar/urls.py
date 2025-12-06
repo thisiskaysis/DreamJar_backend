@@ -22,8 +22,8 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-token-auth/', CustomAuthToken.as_view(), name='api_token_auth'),
-    path('_allauth/', include('allauth.headless.urls')),
-    path('accounts/', include('allauth.urls')),
+    path('auth/', include('allauth.urls')),
+    path('api/', include('core.urls')),
     path('', include('users.urls')),
     path('', include('campaigns.urls')),
     path('', include('donations.urls')),
