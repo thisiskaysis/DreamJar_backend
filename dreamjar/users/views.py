@@ -5,7 +5,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework import status, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -34,7 +33,7 @@ class ParentList(APIView):
             )
     
 class ParentDetail(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self, pk):
         try:
@@ -187,3 +186,16 @@ class CustomAuthToken(ObtainAuthToken):
             'username': user.username,
             'email': user.email
         })
+    
+def home(request):
+    return render(request, 'core/home.html')
+
+@api_view(['GET'])
+def get_jwt_token(request):
+    if not request.user.is_authenticated:
+        return Response({"error": "Please sign in first"}, status=401)
+    refresh = RefreshToken.for_user(request.user)
+    return Response({
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    })

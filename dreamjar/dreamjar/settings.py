@@ -57,7 +57,6 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    # 'core',
 ]
 
 SITE_ID = 1
@@ -72,7 +71,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-SOCIALACCOUNT_ADAPTER = 'core.adapters.CustomSocialAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
 
 AUTH_USER_MODEL = 'users.Parent'
 
