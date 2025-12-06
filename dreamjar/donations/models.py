@@ -28,4 +28,5 @@ class Donation(models.Model):
     donor_email = models.EmailField(blank=True)
 
     def __str__(self):
-        return f"{self.donor.name} has donated {self.amount} to {self.campaign.child.name}"
+        donor_name = self.doner.username if self.donor else self.donor_name or "Anonymous"
+        return f"{donor_name} has donated ${self.amount}"

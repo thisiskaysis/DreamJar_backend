@@ -32,7 +32,8 @@ class CampaignDonationList(APIView):
 
         if not campaign.is_open:
             return Response(
-                {'detail': "This campaign is closed and no longer accepting donations."}
+                {'detail': "This campaign is closed and no longer accepting donations."},
+                status=status.HTTP_400_BAD_REQUEST
             )
         
         serializer = DonationSerializer(
