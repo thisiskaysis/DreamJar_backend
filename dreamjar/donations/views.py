@@ -12,6 +12,7 @@ from decimal import Decimal
 from .stripe_service import StripeService
 from .models import Donation
 from campaigns.models import Campaign
+from users.models import Parent, Child
 from .serializers import DonationSerializer, PublicDonationSerializer
 
 # Create your views here.
@@ -88,9 +89,13 @@ def create_donation_intent(request):
         donor_name = request.data.get('donor_name', '')
 
         campaign = Campaign.objects.get(id=campaign_id)
+        child_id = campaign.child_id
+        child = Child.objects.get(id=child_id)
+        parent_id = child.parent_id
+        creator = Parent.objects.get(id=parent_id)
 
         #Check if creator has completed Stripe onboarding
-        if not campaign.creator.stripe_onboarding_complete:
+        if not creator.stripe_onboarding_complete:
             return Response(
                 {'error': 'Campaign creator has not completed payment setup'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -99,7 +104,7 @@ def create_donation_intent(request):
         #Create payment intent
         payment_intent = StripeService.create_payment_intent(
             amount=Decimal(amount),
-            campaign_creator_stripe_account=campaign.creator.stripe_account_id,
+            campaign_creator_stripe_account=creator.stripe_account_id,
             metadata={
                 'campaign_id': campaign_id,
                 'donor_email': donor_email,
