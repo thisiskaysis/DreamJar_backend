@@ -99,6 +99,8 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'users.Parent'
 
+# LOGIN_REDIRECT_URL = '/jwttoken/'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -117,7 +119,7 @@ ROOT_URLCONF = 'dreamjar.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

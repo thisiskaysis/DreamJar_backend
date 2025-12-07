@@ -192,7 +192,7 @@ class GoogleLoginCallback(APIView):
             'access': str(refresh.access_token),
             'user': {
                 'id': request.user.id,
-                'username': request.user.username,
+                'first_name': request.user.first_name,
                 'email': request.user.email,
             }
         })
