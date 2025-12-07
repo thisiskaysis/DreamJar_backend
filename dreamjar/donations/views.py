@@ -1,8 +1,15 @@
+import stripe
 from django.shortcuts import render
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status, permissions
-from django.http import Http404
+from django.http import Http404, HttpResponse
+from decimal import Decimal
+from .stripe_service import StripeService
 from .models import Donation
 from campaigns.models import Campaign
 from .serializers import DonationSerializer, PublicDonationSerializer
@@ -64,3 +71,111 @@ class DonationList(APIView):
         donations = Donation.objects.filter(donor=request.user)
         serializer = DonationSerializer(donations, many=True)
         return Response(serializer.data)
+    
+
+# === PAYMENT PROCESSING - STRIPE ===
+
+@APIView(['POST'])
+@permission_classes([AllowAny])
+def create_donation_intent(request):
+    """Create payment intent for donation"""
+    try:
+        campaign_id = request.data.get('campaign_id')
+        amount = request.data.get('amount') #In dollars
+        donor_email = request.data.get('donor_email')
+        donor_name = request.data.get('donor_name', '')
+
+        campaign = Campaign.objects.get(id=campaign_id)
+
+        #Check if creator has completed Stripe onboarding
+        if not campaign.creator.stripe_onboarding_complete:
+            return Response(
+                {'error': 'Campaign creator has not completed payment setup'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        #Create payment intent
+        payment_intent = StripeService.create_payment_intent(
+            amount=Decimal(amount),
+            campaign_creator_stripe_account=campaign.creator.stripe_account_id,
+            metadata={
+                'campaign_id': campaign_id,
+                'donor_email': donor_email,
+                'donor_name': donor_name,
+            }
+        )
+
+        #Create donation record
+        donation = Donation.objects.create(
+            campaign=campaign,
+            amount=amount,
+            donor_email=donor_email,
+            donor_name=donor_name,
+            stripe_payment_intent_id=payment_intent.id,
+            status='pending'
+        )
+
+        return Response({
+            'client_secret': payment_intent.client_secret,
+            'payment_intent_id': payment_intent.id,
+            'donation_id': donation.id
+        })
+    
+    except Campaign.DoesNotExist:
+        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+# === WEBHOOK HANDLER ===
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def stripe_webhook(request):
+    """Handle Stripe webhook events"""
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError:
+        return HttpResponse(status=400)
+    
+    #Handle payment intent succeeded
+    if event['type'] == 'payment_intent.succeeded':
+        payment_intent = event['data']['object']
+
+        try:
+            donation = Donation.objects.get(
+                stripe_payment_intent_id=payment_intent['id']
+            )
+            donation.status = 'succeeded'
+            donation.save()
+
+            #Update campaign amount
+            campaign = donation.campaign
+            campaign.current_amount += donation.amount
+            campaign.save()
+
+        except Donation.DoesNotExist:
+            pass
+
+    #Handle payment intent failed
+    elif event['type'] == 'payment_intent.payment_failed':
+        payment_intent = event['data']['object']
+
+        try:
+            donation = Donation.objects.get(
+                stripe_payment_intent_id=payment_intent['id']
+            )
+            donation.status = 'failed'
+            donation.save()
+        except Donation.DoesNotExist:
+            pass
+
+    return HttpResponse(status=200)

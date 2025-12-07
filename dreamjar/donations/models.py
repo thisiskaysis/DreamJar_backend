@@ -8,6 +8,8 @@ class Donation(models.Model):
     comment = models.CharField(max_length=200, blank=True)
     anonymous = models.BooleanField(default=False) #when True, donor's name won't be displayed publicly
     date_donated = models.DateTimeField(auto_now_add=True)
+    stripe_payment_intent_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    stripe_transfer_id = models.CharField(max_length=255, blank=True, null=True)
 
     #Link donation to a specific campaign and donor
     campaign = models.ForeignKey(

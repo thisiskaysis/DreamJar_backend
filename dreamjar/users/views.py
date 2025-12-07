@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from rest_framework import status, permissions
+import stripe
+from donations.stripe_service import StripeService
 from .models import Parent, Child
 from .serializers import ParentSerializer, ChildSerializer
 
@@ -169,6 +171,8 @@ class ChildDetail(APIView):
         child.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+
+# === GOOGLE CALLBACK ===
 class GoogleLoginCallback(APIView):
     """
     Handle Google OAuth callback.
@@ -202,3 +206,81 @@ class GoogleLoginCallback(APIView):
             "access": str(refresh.access_token),
             "refresh": str(refresh)
         })
+    
+# === STRIPE CONNECT ===
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def stripe_connect_account(request):
+    """Create or get Stripe Connect account"""
+    user = request.user
+
+    if user.stripe_account_id:
+        return Response({
+            'account_id': user.stripe_account_id,
+            'onboarding_complete': user.stripe_onboarding_complete
+        })
+    
+    try:
+        account_id = StripeService.create_connect_account(user.email)
+        user.stripe_account_id = account_id
+        user.save()
+
+        return Response({
+            'account_id': account_id,
+            'message': 'Stripe account created'
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def stripe_onboarding_link(request):
+    """Get Stripe onboarding link"""
+    user = request.user
+
+    if not user.stripe_account_id:
+        return Response(
+            {'error': 'No Stripe account. Create one first.'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
+    try:
+        frontend_url = request.data.get('frontend_url', 'http://localhost:3000')
+        link = StripeService.create_onboarding_link(
+            user.stripe_account_id,
+            f"{frontend_url}/connect/refresh",
+            f"{frontend_url}/connect/return"
+        )
+
+        return Response({'url': link})
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def stripe_account_status(request):
+    """Check Stripe account onboarding status"""
+    user = request.user
+
+    if not user.stripe_account_id:
+        return Response({
+            'onboarding_complete': False,
+            'has_account': False
+        })
+    
+    try:
+        is_complete = StripeService.check_account_status(user.stripe_account_id)
+        user.stripe_onboarding_complete = is_complete
+        user.save()
+
+        return Response({
+            'onboarding_complete': is_complete,
+            'has_account': True
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
