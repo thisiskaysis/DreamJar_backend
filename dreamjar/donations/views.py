@@ -75,7 +75,9 @@ class DonationList(APIView):
 
 # === PAYMENT PROCESSING - STRIPE ===
 
-@APIView(['POST'])
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def create_donation_intent(request):
     """Create payment intent for donation"""
