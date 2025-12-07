@@ -70,6 +70,8 @@ SOCIALACCOUNT_ADAPTER = 'users.adapters.CustomSocialAccountAdapter'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        #SESSIONAUTHENTICATION NOT NEEDED FOR REACT SPA - TURN OFF WHEN BUILDING FRONT END
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
@@ -102,15 +104,17 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'users.Parent'
-# SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
-# SOCIALACCOUNT_EMAIL_REQUIRED = True
-# SOCIALACCOUNT_QUERY_EMAIL = True
-# ACCOUNT_UNIQUE_EMAIL = True
-# ACCOUNT_EMAIL_REQUIRED = True
-# ACCOUNT_USERNAME_REQUIRED = False
-SOCIALACCOUNT_AUTO_SIGNUP = True
 
-# LOGIN_REDIRECT_URL = '/jwttoken/'
+LOGIN_REDIRECT_URL = '/api/auth/google/callback/'
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

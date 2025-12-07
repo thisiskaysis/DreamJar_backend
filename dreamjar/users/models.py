@@ -5,8 +5,11 @@ from django.db import models
 class Parent(AbstractUser):
     email = models.EmailField("email address", unique=True, null=False)
 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
+
     def __str__(self):
-        return self.username
+        return self.email
     
 class Child(models.Model):
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='children')
