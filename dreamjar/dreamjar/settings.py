@@ -79,14 +79,18 @@ SOCIALACCOUNT_PROVIDERS = {
         'SCOPE': [
             'profile',
             'email',
+            'openid',
         ],
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
+            'secret': os.environ.get('GOOGLE_SECRET'),
+            'key': ""
+        }
     }
 }
-
-SOCIALACCOUNT_AUTO_SIGNUP = True
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
@@ -98,6 +102,13 @@ SIMPLE_JWT = {
 }
 
 AUTH_USER_MODEL = 'users.Parent'
+# SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+# SOCIALACCOUNT_EMAIL_REQUIRED = True
+# SOCIALACCOUNT_QUERY_EMAIL = True
+# ACCOUNT_UNIQUE_EMAIL = True
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = True
 
 # LOGIN_REDIRECT_URL = '/jwttoken/'
 
