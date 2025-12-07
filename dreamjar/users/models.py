@@ -3,14 +3,10 @@ from django.db import models
 
 # Create your models here.
 class Parent(AbstractUser):
-    username = None
     email = models.EmailField("email address", unique=True, null=False)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name, last_name']
-
     def __str__(self):
-        return self.email
+        return self.username
     
 class Child(models.Model):
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='children')
