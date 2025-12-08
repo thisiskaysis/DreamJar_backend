@@ -286,3 +286,59 @@ def add_bank_details(request):
     
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def payout_status(request):
+    """Check payout setup status and pending balance"""
+    user = request.user
+
+    return Response({
+        'has_stripe_account': bool(user.stripe_account_id),
+        'onboarding_complete': user.stripe_onboarding_complete,
+        'pending_balance': str(user.pending_balance),
+        'can_receive_payouts': user.stripe_onboarding_complete
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def request_payout(request):
+    """Request payout of pending balance"""
+    try:
+        user = request.user
+
+        if not user.stripe_onboarding_complete:
+            return Response(
+                {'error': 'Please complete payout setup first'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if user.pending_balance <= 0:
+            return Response(
+                {'error': 'No funds available for payout'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Transfer funds to creator
+        transfer = StripeService.transfer_to_creator(
+            account_id=stripe_account_id,
+            amount=user.pending_balance,
+            campaign_id=0,
+            description=f'Payout to {user.email}'
+        )
+
+        # Update pending balance
+        payout_amount = user.pending_balance
+        user.pending_balance = 0
+        user.save()
+
+        return Response({
+            'message': 'Payout processed successfully',
+            'amount': str(payout_amount),
+            'transfer_id': transfer.id
+        })
+    
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
