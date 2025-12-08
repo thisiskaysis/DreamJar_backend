@@ -109,13 +109,13 @@ def create_donation_intent(request):
             donor_email=donor_email,
             donor_name=donor_name,
             stripe_payment_intent_id=payment_intent.id,
-            status='pending'
         )
 
         return Response({
             'client_secret': payment_intent.client_secret,
             'payment_intent_id': payment_intent.id,
-            'donation_id': donation.id
+            'donation_id': donation.id,
+            'status': 'pending'
         })
     
     except Campaign.DoesNotExist:

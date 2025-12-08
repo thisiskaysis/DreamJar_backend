@@ -323,7 +323,7 @@ def request_payout(request):
         
         # Transfer funds to creator
         transfer = StripeService.transfer_to_creator(
-            account_id=stripe_account_id,
+            account_id=user.stripe_account_id,
             amount=user.pending_balance,
             campaign_id=0,
             description=f'Payout to {user.email}'
