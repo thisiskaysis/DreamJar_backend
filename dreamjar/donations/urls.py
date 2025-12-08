@@ -6,9 +6,9 @@ urlpatterns = [
     path('donations/', views.DonationList.as_view()),
     
     #Payment processing
-    path('stripe/create-payment-intent/', views.create_donation_intent, name='create_donation_intent'),
+    path('create-payment-intent/', views.create_donation_intent, name='create_donation_intent'),
 
     #Webhook
-    path('stripe/webhook/', views.stripe_webhook, name='stripe_webhook'),
+    path('stripe-webhook/', views.stripe_webhook, name='stripe_webhook'),
 
 ]

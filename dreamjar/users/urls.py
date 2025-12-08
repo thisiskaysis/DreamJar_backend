@@ -10,8 +10,9 @@ urlpatterns = [
     #Handle Google log in callback
     path('api/auth/google/callback/', views.GoogleLoginCallback.as_view(), name='google_login_landing'),
 
-    #Stripe Connect
-    path('stripe/connect/account/', views.stripe_connect_account, name='stripe_connect_account'),
-    path('stripe/connect/onboarding/', views.stripe_onboarding_link, name='stripe_onboarding_link'),
-    path('stripe/connect/status/', views.stripe_account_status, name='stripe_account_status'),
+    # Stripe Payout Setup
+    path('payout/setup/', views.setup_payout_account, name='setup_payout'),
+    path('payout/add-bank/', views.add_bank_details, name='add_bank_details'),
+    path('payout/status/', views.payout_status, name='payout_status'),
+    path('payout/request/', views.request_payout, name='request_payout')
 ]
