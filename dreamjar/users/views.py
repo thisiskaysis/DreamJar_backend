@@ -212,7 +212,7 @@ class GoogleLoginCallback(APIView):
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-@api_view({'POST'})
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def setup_payout_account(request):
     try:
