@@ -10,6 +10,7 @@ class Donation(models.Model):
     date_donated = models.DateTimeField(auto_now_add=True)
     stripe_payment_intent_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
     stripe_transfer_id = models.CharField(max_length=255, blank=True, null=True)
+    transferred_to_creator = models.BooleanField(default=False)
 
     #Link donation to a specific campaign and donor
     campaign = models.ForeignKey(

@@ -6,6 +6,7 @@ class Parent(AbstractUser):
     email = models.EmailField("email address", unique=True, null=False)
     stripe_account_id = models.CharField(max_length=255, blank=True, null=True)
     stripe_onboarding_complete = models.BooleanField(default=False)
+    pending_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

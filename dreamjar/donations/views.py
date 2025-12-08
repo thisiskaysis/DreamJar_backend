@@ -84,32 +84,22 @@ def create_donation_intent(request):
     """Create payment intent for donation"""
     try:
         campaign_id = request.data.get('campaign_id')
-        amount = request.data.get('amount') #In dollars
+        amount = Decimal(request.data.get('amount'))
         donor_email = request.data.get('donor_email')
         donor_name = request.data.get('donor_name', '')
 
         campaign = Campaign.objects.get(id=campaign_id)
         child_id = campaign.child_id
-        child = Child.objects.get(id=child_id)
+        child = Child.objects.get(id=child_id)  
         parent_id = child.parent_id
         creator = Parent.objects.get(id=parent_id)
-
-        #Check if creator has completed Stripe onboarding
-        if not creator.stripe_onboarding_complete:
-            return Response(
-                {'error': 'Campaign creator has not completed payment setup'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         
         #Create payment intent
         payment_intent = StripeService.create_payment_intent(
-            amount=Decimal(amount),
-            campaign_creator_stripe_account=creator.stripe_account_id,
-            metadata={
-                'campaign_id': campaign_id,
-                'donor_email': donor_email,
-                'donor_name': donor_name,
-            }
+            amount=amount,
+            campaign_id=campaign_id,
+            donor_email=donor_email,
+            donor_name=donor_name
         )
 
         #Create donation record
