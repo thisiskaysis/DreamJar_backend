@@ -212,76 +212,77 @@ class GoogleLoginCallback(APIView):
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-@api_view(['POST'])
+@api_view({'POST'})
 @permission_classes([IsAuthenticated])
-def stripe_connect_account(request):
-    """Create or get Stripe Connect account"""
-    user = request.user
+def setup_payout_account(request):
+    try:
+        user = request.user
 
-    if user.stripe_account_id:
+        # Create Stripe account if it doesn't exist
+        if not user.stripe_account_id:
+            account_id = StripeService.create_custom_account(user.email)
+            user.stripe_account_id = account_id
+            user.save()
+
+        # Update account with personal details
+        StripeService.update_account_details(
+            account_id=user.stripe_account_id,
+            first_name=request.data.get('first_name'),
+            last_name=request.data.get('last_name'),
+            dob=request.data.get('dob'),
+            address_line1=request.data.get('address_line1'),
+            city=request.data.get('city'),
+            state=request.data.get('state'),
+            postal_code=request.data.get('postal_code'),
+            ip_address=request.META.get('REMOTE_ADDR', '0.0.0.0'),
+        )
+
         return Response({
+            'message': 'Personal details saved',
             'account_id': user.stripe_account_id,
-            'onboarding_complete': user.stripe_onboarding_complete
+            'next_step': 'add_bank_account'
         })
     
-    try:
-        account_id = StripeService.create_connect_account(user.email)
-        user.stripe_account_id = account_id
-        user.save()
-
-        return Response({
-            'account_id': account_id,
-            'message': 'Stripe account created'
-        })
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def stripe_onboarding_link(request):
-    """Get Stripe onboarding link"""
-    user = request.user
-
-    if not user.stripe_account_id:
-        return Response(
-            {'error': 'No Stripe account. Create one first.'},
-            status=status.HTTP_404_NOT_FOUND
-        )
-    
+def add_bank_details(request):
+    """
+    Add Australian bank account
+    Required fields:
+    - bsb (6 digits)
+    - account_number
+    - account_holder_name
+    """
     try:
-        frontend_url = request.data.get('frontend_url', 'http://localhost:3000')
-        link = StripeService.create_onboarding_link(
-            user.stripe_account_id,
-            f"{frontend_url}/connect/refresh",
-            f"{frontend_url}/connect/return"
+        user = request.user
+
+        if not user.stripe_account_id:
+            return Response(
+                {'error': 'Please complete personal details first'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        #Add bank account
+        StripeService.add_bank_account(
+            account_id=user.stripe_account_id,
+            bsb=request.data.get('bsb'),
+            account_number=request.data.get('account_number'),
+            account_holder_name=request.data.get('account_holder_name'),
         )
 
-        return Response({'url': link})
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def stripe_account_status(request):
-    """Check Stripe account onboarding status"""
-    user = request.user
-
-    if not user.stripe_account_id:
-        return Response({
-            'onboarding_complete': False,
-            'has_account': False
-        })
-    
-    try:
-        is_complete = StripeService.check_account_status(user.stripe_account_id)
-        user.stripe_onboarding_complete = is_complete
+        #Check if account is ready
+        is_ready = StripeService.check_account_status(user.stripe_account_id)
+        user.stripe_onboarding_complete = is_ready
         user.save()
 
         return Response({
-            'onboarding_complete': is_complete,
-            'has_account': True
+            'message': 'Bank account added successfully',
+            'onboarding_complete': is_ready,
+            'pending_balance': str(user.pending_balance)
         })
+    
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
