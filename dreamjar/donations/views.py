@@ -82,6 +82,9 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 @permission_classes([AllowAny])
 def create_donation_intent(request):
     """Create payment intent for donation"""
+    if request.user.is_authenticated:
+        donation.donor = request.user
+        
     try:
         campaign_id = request.data.get('campaign_id')
         amount = Decimal(request.data.get('amount'))
