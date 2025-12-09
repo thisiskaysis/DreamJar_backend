@@ -212,133 +212,130 @@ class GoogleLoginCallback(APIView):
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def setup_payout_account(request):
-    try:
+class SetupPayout(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(request):
+        try:
+            user = request.user
+            # Create Stripe account if it doesn't exist
+            if not user.stripe_account_id:
+                account_id = StripeService.create_custom_account(user.email)
+                user.stripe_account_id = account_id
+                user.save()
+
+            # Update account with personal details
+            StripeService.update_account_details(
+                account_id=user.stripe_account_id,
+                first_name=request.data.get('first_name'),
+                last_name=request.data.get('last_name'),
+                dob=request.data.get('dob'),
+                address_line1=request.data.get('address_line1'),
+                city=request.data.get('city'),
+                state=request.data.get('state'),
+                postal_code=request.data.get('postal_code'),
+                ip_address=request.META.get('REMOTE_ADDR', '0.0.0.0'),
+            )
+
+            return Response({
+                'message': 'Personal details saved',
+                'account_id': user.stripe_account_id,
+                'next_step': 'add_bank_account'
+            })
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
+    def get(request):
+        """Check payout setup status and pending balance"""
         user = request.user
 
-        # Create Stripe account if it doesn't exist
-        if not user.stripe_account_id:
-            account_id = StripeService.create_custom_account(user.email)
-            user.stripe_account_id = account_id
+        return Response({
+            'has_stripe_account': bool(user.stripe_account_id),
+            'onboarding_complete': user.stripe_onboarding_complete,
+            'pending_balance': str(user.pending_balance),
+            'can_receive_payouts': user.stripe_onboarding_complete
+        })
+        
+class AddBankDetails(APIView):
+    def post(request):
+        permission_classes = [IsAuthenticated]
+        """
+        Add Australian bank account
+        Required fields:
+        - bsb (6 digits)
+        - account_number
+        - account_holder_name
+        """
+        try:
+            user = request.user
+
+            if not user.stripe_account_id:
+                return Response(
+                    {'error': 'Please complete personal details first'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            #Add bank account
+            StripeService.add_bank_account(
+                account_id=user.stripe_account_id,
+                bsb=request.data.get('bsb'),
+                account_number=request.data.get('account_number'),
+                account_holder_name=request.data.get('account_holder_name'),
+            )
+
+            #Check if account is ready
+            is_ready = StripeService.check_account_status(user.stripe_account_id)
+            user.stripe_onboarding_complete = is_ready
             user.save()
 
-        # Update account with personal details
-        StripeService.update_account_details(
-            account_id=user.stripe_account_id,
-            first_name=request.data.get('first_name'),
-            last_name=request.data.get('last_name'),
-            dob=request.data.get('dob'),
-            address_line1=request.data.get('address_line1'),
-            city=request.data.get('city'),
-            state=request.data.get('state'),
-            postal_code=request.data.get('postal_code'),
-            ip_address=request.META.get('REMOTE_ADDR', '0.0.0.0'),
-        )
-
-        return Response({
-            'message': 'Personal details saved',
-            'account_id': user.stripe_account_id,
-            'next_step': 'add_bank_account'
-        })
-    
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_bank_details(request):
-    """
-    Add Australian bank account
-    Required fields:
-    - bsb (6 digits)
-    - account_number
-    - account_holder_name
-    """
-    try:
-        user = request.user
-
-        if not user.stripe_account_id:
-            return Response(
-                {'error': 'Please complete personal details first'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({
+                'message': 'Bank account added successfully',
+                'onboarding_complete': is_ready,
+                'pending_balance': str(user.pending_balance)
+            })
         
-        #Add bank account
-        StripeService.add_bank_account(
-            account_id=user.stripe_account_id,
-            bsb=request.data.get('bsb'),
-            account_number=request.data.get('account_number'),
-            account_holder_name=request.data.get('account_holder_name'),
-        )
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        #Check if account is ready
-        is_ready = StripeService.check_account_status(user.stripe_account_id)
-        user.stripe_onboarding_complete = is_ready
-        user.save()
+class RequestPayout(APIView):
+    permission_classes = [IsAuthenticated]
 
-        return Response({
-            'message': 'Bank account added successfully',
-            'onboarding_complete': is_ready,
-            'pending_balance': str(user.pending_balance)
-        })
-    
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
+    def post(request):
+        """Request payout of pending balance"""
+        try:
+            user = request.user
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def payout_status(request):
-    """Check payout setup status and pending balance"""
-    user = request.user
-
-    return Response({
-        'has_stripe_account': bool(user.stripe_account_id),
-        'onboarding_complete': user.stripe_onboarding_complete,
-        'pending_balance': str(user.pending_balance),
-        'can_receive_payouts': user.stripe_onboarding_complete
-    })
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def request_payout(request):
-    """Request payout of pending balance"""
-    try:
-        user = request.user
-
-        if not user.stripe_onboarding_complete:
-            return Response(
-                {'error': 'Please complete payout setup first'},
-                status=status.HTTP_400_BAD_REQUEST
+            if not user.stripe_onboarding_complete:
+                return Response(
+                    {'error': 'Please complete payout setup first'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            if user.pending_balance <= 0:
+                return Response(
+                    {'error': 'No funds available for payout'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Transfer funds to creator
+            transfer = StripeService.transfer_to_creator(
+                account_id=user.stripe_account_id,
+                amount=user.pending_balance,
+                campaign_id=0,
+                description=f'Payout to {user.email}'
             )
-        
-        if user.pending_balance <= 0:
-            return Response(
-                {'error': 'No funds available for payout'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # Transfer funds to creator
-        transfer = StripeService.transfer_to_creator(
-            account_id=user.stripe_account_id,
-            amount=user.pending_balance,
-            campaign_id=0,
-            description=f'Payout to {user.email}'
-        )
 
-        # Update pending balance
-        payout_amount = user.pending_balance
-        user.pending_balance = 0
-        user.save()
+            # Update pending balance
+            payout_amount = user.pending_balance
+            user.pending_balance = 0
+            user.save()
 
-        return Response({
-            'message': 'Payout processed successfully',
-            'amount': str(payout_amount),
-            'transfer_id': transfer.id
-        })
-    
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({
+                'message': 'Payout processed successfully',
+                'amount': str(payout_amount),
+                'transfer_id': transfer.id
+            })
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

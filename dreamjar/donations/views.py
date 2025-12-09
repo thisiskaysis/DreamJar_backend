@@ -15,8 +15,15 @@ from campaigns.models import Campaign
 from users.models import Parent, Child
 from .serializers import DonationSerializer, PublicDonationSerializer
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
 # Create your views here.
 class CampaignDonationList(APIView):
+    """
+    GET: List all donations for a specific campaign (public)
+    POST: Create payment intent to donate to a specific campaign
+    """
+    permission_classes = [AllowAny]
 
     def get_object(self, pk):
         try:
@@ -25,8 +32,9 @@ class CampaignDonationList(APIView):
             raise Http404
 
     def get(self, request, pk):
+        """List all successful donations for a campaign"""
         campaign = self.get_object(pk)
-        donations = campaign.donations.all()
+        donations = campaign.donations.filter(status='succeeded').order_by('-created_at')
         serializer = PublicDonationSerializer(donations, many=True)
         return Response(serializer.data)
 
@@ -43,6 +51,31 @@ class CampaignDonationList(APIView):
                 {'detail': "This campaign is closed and no longer accepting donations."},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        amount = request.data.get('amount')
+        comment = request.data.get('comment', '')
+        anonymous = request.data.get('anonymous', False)
+
+        # Validate amount
+        try:
+            amount = Decimal(amount)
+            if amount <= 0:
+                raise Response(
+                    {'detail': "Amount must be greater than zero."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            if amount > 100000:
+                return Response(
+                    {'detail': "Amount exceeds maximum limit ($100,000)."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        except (TypeError, ValueError):
+            return Response(
+                {'detail': "Invalid amount."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        
         
         serializer = DonationSerializer(
             data=request.data,
@@ -75,8 +108,6 @@ class DonationList(APIView):
     
 
 # === PAYMENT PROCESSING - STRIPE ===
-
-stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
