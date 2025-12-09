@@ -52,6 +52,7 @@ class CampaignDonationList(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
+        # Extract donation data from request
         amount = request.data.get('amount')
         comment = request.data.get('comment', '')
         anonymous = request.data.get('anonymous', False)
@@ -75,88 +76,66 @@ class CampaignDonationList(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        
-        
-        serializer = DonationSerializer(
-            data=request.data,
-            context={'request': request}
-            )
-        
-        if serializer.is_valid():
-            if request.user.is_authenticated:
-                serializer.save(campaign=campaign, donor=request.user)
-            else:
-                serializer.save(campaign=campaign)
-            return Response(
-                serializer.data,
-                status=status.HTTP_201_CREATED
+        # Determine donor info
+        if request.user.is_authenticated:
+            donor = request.user
+            donor_email = donor.email
+            donor_name = f"{donor.first_name} {donor.last_name}".strip()
+        else:
+            donor = None
+            donor_email = request.data.get('donor_email')
+            donor_name = request.data.get('donor_name', '')
+
+            if not donor_email or not donor_name:
+                return Response(
+                    {'detail': "Name and email are required for anonymous donations."},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-        return Response(
-            serializer.errors,
-            status=status.HTTP_400_BAD_REQUEST
+            
+        try:
+            # Create Stripe Payment Intent
+            payment_intent = StripeService.create_payment_intent(
+                amount=amount,
+                campaign_id=campaign.id,
+                donor_email=donor_email,
+                donor_name=donor_name
+            )
+
+            donation = Donation.objects.create(
+                campaign=campaign,
+                amount=amount,
+                donor=donor,
+                donor_email=donor_email,
+                donor_name=donor_name,
+                stripe_payment_intent_id=payment_intent.id,
+                comment=comment,
+                anonymous=anonymous,
+                status='pending'
+            )
+
+            return Response({
+                'client_secret': payment_intent.client_secret,
+                'payment_intent_id': payment_intent.id,
+                'donation_id': donation.id,
+                'message': 'Payment intent created. Complete payment on frontend.'
+            }, status=status.HTTP_201_CREATED)
+        
+        except Exception as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )
     
 class DonationList(APIView):
     """
     View donations you have made (authenticated users only)
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         donations = Donation.objects.filter(donor=request.user)
         serializer = DonationSerializer(donations, many=True)
         return Response(serializer.data)
-    
-
-# === PAYMENT PROCESSING - STRIPE ===
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def create_donation_intent(request):
-    """Create payment intent for donation"""
-    if request.user.is_authenticated:
-        donation.donor = request.user
-        
-    try:
-        campaign_id = request.data.get('campaign_id')
-        amount = Decimal(request.data.get('amount'))
-        donor_email = request.data.get('donor_email')
-        donor_name = request.data.get('donor_name', '')
-
-        campaign = Campaign.objects.get(id=campaign_id)
-        child_id = campaign.child_id
-        child = Child.objects.get(id=child_id)  
-        parent_id = child.parent_id
-        creator = Parent.objects.get(id=parent_id)
-        
-        #Create payment intent
-        payment_intent = StripeService.create_payment_intent(
-            amount=amount,
-            campaign_id=campaign_id,
-            donor_email=donor_email,
-            donor_name=donor_name
-        )
-
-        #Create donation record
-        donation = Donation.objects.create(
-            campaign=campaign,
-            amount=amount,
-            donor_email=donor_email,
-            donor_name=donor_name,
-            stripe_payment_intent_id=payment_intent.id,
-        )
-
-        return Response({
-            'client_secret': payment_intent.client_secret,
-            'payment_intent_id': payment_intent.id,
-            'donation_id': donation.id,
-            'status': 'pending'
-        })
-    
-    except Campaign.DoesNotExist:
-        return Response({'error': 'Campaign not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-    
 
 # === WEBHOOK HANDLER ===
 
@@ -177,7 +156,7 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError:
         return HttpResponse(status=400)
     
-    #Handle payment intent succeeded
+    #Handle payment success
     if event['type'] == 'payment_intent.succeeded':
         payment_intent = event['data']['object']
 
@@ -185,18 +164,26 @@ def stripe_webhook(request):
             donation = Donation.objects.get(
                 stripe_payment_intent_id=payment_intent['id']
             )
+
+            # Update donation status
             donation.status = 'succeeded'
             donation.save()
 
-            #Update campaign amount
+            #Update campaign total (only on success)
             campaign = donation.campaign
             campaign.current_amount += donation.amount
             campaign.save()
 
+            #Update parent's pending balance
+            child = campaign.child
+            parent = child.parent
+            parent.pending_balance += donation.amount
+            parent.save()
+
         except Donation.DoesNotExist:
             pass
 
-    #Handle payment intent failed
+    #Handle payment failure
     elif event['type'] == 'payment_intent.payment_failed':
         payment_intent = event['data']['object']
 

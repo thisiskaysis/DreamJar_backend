@@ -36,6 +36,17 @@ class Donation(models.Model):
     donor_name = models.CharField(max_length=100, blank=True)
     donor_email = models.EmailField(blank=True)
 
+    class Meta:
+        ordering = ['-date_donated']
+
     def __str__(self):
         donor_name = self.donor.username if self.donor else self.donor_name or "Anonymous"
-        return f"{donor_name} has donated ${self.amount}"
+        return f"{donor_name} has donated ${self.amount} - {self.get_status_display()}"
+    
+    @property
+    def display_donor_name(self):
+        if self.anonymous:
+            return "Anonymous"
+        if self.donor:
+            return self.donor.get_full_name() or self.donor.username
+        return self.donor_name or "Anonymous"
