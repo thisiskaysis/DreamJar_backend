@@ -10,6 +10,14 @@ class Campaign(models.Model):
     image = models.URLField()
     is_open = models.BooleanField(default=True)
     date_created = models.DateTimeField(auto_now_add=True)
+    category = models.CharField(max_length=50,
+        choices=[
+        ('sports', 'Sports'),
+        ('education', 'Education'),
+        ('hobbies', 'Hobbies'),
+        ('health', 'Health'),
+        ('dreams', 'Dreams'),
+        ])
     
     #Link campaign to a specific child
     child = models.ForeignKey(
