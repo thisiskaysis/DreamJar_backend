@@ -7,5 +7,6 @@ psycopg2-binary==2.9.10
 python-dotenv==1.0.1
 whitenoise==6.7.0
 requests==2.32.5
-django-allauth[social_account]
-djangorestframework-simplejwt
+django-allauth==65.13.1
+djangorestframework_simplejwt==5.5.1
+cryptography==46.0.3
