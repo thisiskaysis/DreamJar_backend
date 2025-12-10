@@ -27,28 +27,32 @@ class PublicCampaignSerializer(serializers.ModelSerializer):
     Hides sensitive information
     Shows ONLY child's first name
     """
-    child_name = serializers.SerializerMethodField()
-    total_raised = serializers.SerializerMethodField()
-    donor_count = serializers.SerializerMethodField()
-    percentage_funded = serializers.SerializerMethodField()
 
+    child_name = serializers.SerializerMethodField()
     class Meta:
-        model = apps.get_model('campaigns.Campaign')
-        fields = ['id', 'child_name', 'title', 'description', 'goal', 'image', 'is_open', 'date_created', 'total_raised', 'donor_count', 'percentage_funded']
-    
+        model = Campaign
+        fields = [
+            'id',
+            'child_name',
+            'title',
+            'description',
+            'goal',
+            'image',
+            'is_open',
+            'date_created',
+            'category',
+            'has_deadline',
+            'deadline',
+            'total_raised',
+            'donation_count',
+            'percentage_raised',
+            'is_expired',
+            'seconds_remaining',
+        ]
+
     def get_child_name(self, obj):
         return obj.child.name
     
-    def get_total_raised(self, obj):
-        return sum(donation.amount for donation in obj.donations.all())
-    
-    def get_donor_count(self, obj):
-        return obj.donations.count()
-    
-    def get_percentage_funded(self, obj):
-        total = self.get_total_raised(obj)
-        return round((total / obj.goal * 100), 1) if obj.goal > 0 else 0
-
 class CampaignDetailSerializer(CampaignSerializer):
     """
     For campaign OWNER
