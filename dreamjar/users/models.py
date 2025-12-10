@@ -6,7 +6,7 @@ class Parent(AbstractUser):
     email = models.EmailField("email address", unique=True, null=False)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.email
