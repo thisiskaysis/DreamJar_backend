@@ -28,7 +28,7 @@ For each Child, Parent can create a campaign for their Child.
 | /campaigns/ | GET | Browse all campaigns | N/A | 200 OK | Public |
 | /campaigns/{id} | GET | View campaign details | N/A | 200 OK | Public |
 | /campaigns/{id}/donations | GET | View campaign's donations | 200 OK | Public |
-| /campaigns/{id}/donations | POST | Make a donation (with or without a user account) | 201 Created | Public
+| /campaigns/{id}/donations | POST | Make a donation (with or without a user account) | 201 Created | Public |
 
 ### DB Schema
 ![]( {{ ./relative/path/to/your/schema/image.png }} )
