@@ -12,13 +12,25 @@ For each Child, Parent can create a campaign for their Child.
 {{ Who are your intended audience? How will they use the website? }}
 
 ### Front End Pages/Functionality
-- {{ A page on the front end }}
-    - {{ A list of dot-points showing functionality is available on this page }}
-    - {{ etc }}
-    - {{ etc }}
-- {{ A second page available on the front end }}
-    - {{ Another list of dot-points showing functionality }}
-    - {{ etc }}
+- **Log in page**
+    - Sign in with Email & Password
+    - Sign in with Google
+  
+- **Profile Page**
+    - Create Child/ren
+    - Create campaigns under each child
+    - List all campaigns under each child
+    - Update/Delete profile
+    - Update/Delete child
+    - Update/Delete campaign
+    - Track campaign data
+      - Total raised to date
+      - Percentage of goal reached
+      - How many donations have been received
+      - Time remaining (if deadline)
+  
+- **Campaigns**
+     
 
 ### API Spec
 #### Public Endpoints
