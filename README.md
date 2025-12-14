@@ -50,7 +50,7 @@ Kaycee Lawrence
 ## 1. Deployed Project
 
 🔗 **Live API:**  
-`https://dreamjar-backend-92db4d7e1c70.herokuapp.com`
+`https://dreamjar-backend-92db4d7e1c70.herokuapp.com/auth/google/login/`
 
 ## 2. Project Overview
 
