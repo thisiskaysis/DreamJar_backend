@@ -69,6 +69,9 @@ class CampaignDetailSerializer(CampaignSerializer):
         instance.goal = validated_data.get('goal', instance.goal)
         instance.image = validated_data.get('image', instance.image)
         instance.is_open = validated_data.get('is_open', instance.is_open)
+        instance.category = validated_data.get('category', instance.category)
+        instance.has_deadline = validated_data.get('has_deadline', instance.has_deadline)
+        instance.deadline = validated_data.get('deadline', instance.deadline)
         instance.save()
         return instance
     

@@ -2,60 +2,65 @@
 
 Kaycee Lawrence
 
-- [DreamJar - Crowdfunding Backend](#dreamjar---crowdfunding-backend)
-  - [Project Overview](#project-overview)
-  - [Concept](#concept)
-    - [Campaign Categories](#campaign-categories)
-    - [How It Works](#how-it-works)
-  - [Target Audience](#target-audience)
-  - [Tech Stack](#tech-stack)
-  - [Core Features](#core-features)
-  - [User Accounts \& Authentication](#user-accounts--authentication)
-    - [User Model](#user-model)
-    - [Authentication Methods](#authentication-methods)
-  - [User Access Rules](#user-access-rules)
-  - [Anonymous Donations](#anonymous-donations)
-  - [Campaign Lifecycle \& Business Logic](#campaign-lifecycle--business-logic)
-    - [Dynamic Campaign Properties](#dynamic-campaign-properties)
-    - [Campaign Deadlines](#campaign-deadlines)
-  - [Step-by-Step Usage Guide](#step-by-step-usage-guide)
-    - [1️⃣ Register a New Parent Account](#1️⃣-register-a-new-parent-account)
-    - [2️⃣ Create a Child Profile](#2️⃣-create-a-child-profile)
-    - [3️⃣ Create a Campaign (DreamJar)](#3️⃣-create-a-campaign-dreamjar)
-    - [4️⃣ Make a Donation](#4️⃣-make-a-donation)
-    - [5️⃣ Browse Public Campaigns](#5️⃣-browse-public-campaigns)
-  - [User Stories](#user-stories)
-  - [Front End Pages/Functionality](#front-end-pagesfunctionality)
-    - [Parent Dashboard](#parent-dashboard)
-    - [Child Management](#child-management)
-    - [Campaign Management](#campaign-management)
-    - [Public Campaign Browser](#public-campaign-browser)
-    - [Donation Features](#donation-features)
-  - [API Specification](#api-specification)
-    - [Authentication](#authentication)
-    - [Parents (Users)](#parents-users)
-    - [Children](#children)
-    - [Campaigns](#campaigns)
-    - [Donations](#donations)
-  - [Database Schema](#database-schema)
-    - [Parent (Custom User Model)](#parent-custom-user-model)
-    - [Child](#child)
-    - [Campaign](#campaign)
-    - [Donation](#donation)
-  - [Deployed Project](#deployed-project)
-  - [Insomnia API Testing Evidence](#insomnia-api-testing-evidence)
-    - [Successful GET Request](#successful-get-request)
-    - [Successful POST Request](#successful-post-request)
-    - [Token Authentication Response](#token-authentication-response)
-  - [Security Considerations](#security-considerations)
+## Contents
 
-## Project Overview
+- [DreamJar - Crowdfunding Backend](#dreamjar---crowdfunding-backend)
+  - [Contents](#contents)
+  - [1. Deployed Project](#1-deployed-project)
+  - [2. Project Overview](#2-project-overview)
+  - [3. Concept](#3-concept)
+    - [3.1. Campaign Categories](#31-campaign-categories)
+    - [3.2. How It Works](#32-how-it-works)
+  - [4. Target Audience](#4-target-audience)
+  - [5. Tech Stack](#5-tech-stack)
+  - [6. Core Features](#6-core-features)
+  - [7. User Stories](#7-user-stories)
+  - [8. User Accounts \& Authentication](#8-user-accounts--authentication)
+    - [8.1. User Model](#81-user-model)
+    - [8.2. Authentication Methods](#82-authentication-methods)
+  - [9. User Access Rules](#9-user-access-rules)
+  - [10. Anonymous Donations](#10-anonymous-donations)
+  - [11. Campaign Logic](#11-campaign-logic)
+    - [11.1. Dynamic Campaign Properties](#111-dynamic-campaign-properties)
+    - [11.2. Campaign Deadlines](#112-campaign-deadlines)
+  - [12. Front End Pages/Functionality](#12-front-end-pagesfunctionality)
+    - [12.1. Parent Dashboard](#121-parent-dashboard)
+    - [12.2. Child Management](#122-child-management)
+    - [12.3. Campaign Management](#123-campaign-management)
+    - [12.4. Public Campaign Browser](#124-public-campaign-browser)
+    - [12.5. Donation Features](#125-donation-features)
+  - [13. API Specification](#13-api-specification)
+    - [13.1. Authentication](#131-authentication)
+    - [13.2. Parents (Users)](#132-parents-users)
+    - [13.3. Children](#133-children)
+    - [13.4. Campaigns](#134-campaigns)
+    - [13.5. Donations](#135-donations)
+  - [14. Database Schema](#14-database-schema)
+    - [14.1. Parent (Custom User Model)](#141-parent-custom-user-model)
+    - [14.2. Child](#142-child)
+    - [14.3. Campaign](#143-campaign)
+    - [14.4. Donation](#144-donation)
+  - [15. Insomnia API Testing Evidence](#15-insomnia-api-testing-evidence)
+    - [15.1. Successful GET Request](#151-successful-get-request)
+    - [15.2. Successful POST Request](#152-successful-post-request)
+    - [15.3. Token Authentication Response](#153-token-authentication-response)
+    - [15.4. Google OAuth Response](#154-google-oauth-response)
+
+
+## 1. Deployed Project
+
+🔗 **Live API:**  
+`https://dreamjar-backend-92db4d7e1c70.herokuapp.com`
+
+## 2. Project Overview
 
 DreamJar is a Django REST Framework API that enables parents to create crowdfunding campaigns for their children's dreams and goals. The platform is designed specifically for children under 16, with parents managing accounts and campaigns on their behalf.
 
 The API implements robust authentication, permissions, and validation to ensure child safety and data privacy while allowing the community to support children's aspirations.
 
-## Concept
+**For step by step usage guide, [click here](./userguide.md)**
+
+## 3. Concept
 
 DreamJar is a **child-focused crowdfunding platform** that helps families fund their children's dreams, goals, and opportunities.
 
@@ -66,7 +71,7 @@ Many children have aspirations that require financial support - whether it's spo
 - **The community can donate** to support children's dreams
 - **Privacy is protected** - only the child's first name is shown publicly
 
-### Campaign Categories
+### 3.1. Campaign Categories
 
 - **Sports** - Equipment, training, team fees, competitions
 - **Education** - Tutoring, courses, educational materials, school trips
@@ -74,7 +79,7 @@ Many children have aspirations that require financial support - whether it's spo
 - **Health** - Medical equipment, therapy, health programs
 - **Dreams** - Special experiences, opportunities, general aspirations
 
-### How It Works
+### 3.2. How It Works
 
 1. **Parents register** and create profiles for their children (under 16)
 2. **Parents create campaigns** for each child's specific goal
@@ -82,7 +87,7 @@ Many children have aspirations that require financial support - whether it's spo
 4. **Parents manage** their children's campaigns and track progress
 5. **Funds are raised** to help children achieve their dreams
 
-## Target Audience
+## 4. Target Audience
 
 - **Parents** seeking support for their children's goals and dreams
 - **Family members** wanting to contribute to their relatives' aspirations
@@ -90,7 +95,7 @@ Many children have aspirations that require financial support - whether it's spo
 - **Friends and neighbors** who want to help children in their community
 - **Organizations** supporting youth development and opportunities
 
-## Tech Stack
+## 5. Tech Stack
 
 - **Django 5.2.7**
 - **Django REST Framework**
@@ -101,7 +106,7 @@ Many children have aspirations that require financial support - whether it's spo
 - **WhiteNoise** - Static file serving
 - **python-dotenv** - Environment variable management
 
-## Core Features
+## 6. Core Features
 
 - **Secure parent registration and authentication**
 - **JWT token-based API access**
@@ -115,299 +120,7 @@ Many children have aspirations that require financial support - whether it's spo
 - **Child age validation** (must be under 16)
 - **Campaign closure controls** to stop accepting donations
 
-## User Accounts & Authentication
-
-### User Model
-
-DreamJar uses a **custom user model** (`Parent`) that extends Django's `AbstractUser`:
-
-- **Email-based authentication** (email is the USERNAME_FIELD)
-- Each parent can have **multiple children**
-- Each child can have **multiple campaigns**
-- Parents have full control over their children's profiles and campaigns
-
-### Authentication Methods
-
-**1. JWT Token Authentication**
-
-```
-POST /api/token/
-POST /api/token/refresh/
-```
-
-Tokens must be included in the Authorization header:
-
-```
-Authorization: Bearer <your_access_token>
-```
-
-**2. Google OAuth**
-
-```
-GET /auth/google/login/
-GET /api/auth/google/callback/
-```
-
-Returns JWT tokens upon successful authentication.
-
-**3. Session Authentication**
-
-Available for development and browsable API access.
-
-## User Access Rules
-
-| Action | Who Can Do It |
-| --- | --- |
-| Register a parent account | Anyone |
-| View parent profile | The parent themselves |
-| Edit parent profile | The parent themselves |
-| Create a child | The child's parent only |
-| View child details | The child's parent only |
-| Edit child details | The child's parent only |
-| Delete child | The child's parent only (no active campaigns) |
-| Create a campaign | The child's parent only |
-| View campaign (full details) | The child's parent (owner view) |
-| View campaign (limited) | Anyone (public view) |
-| Edit campaign | The campaign owner (parent) only |
-| Delete campaign | The campaign owner (parent) only |
-| Make a donation | Anyone (authenticated or anonymous) |
-| View donation history | The donor (authenticated users only) |
-| Browse public campaigns | Anyone |
-
-> **Child Safety:** Children cannot be deleted if they have active (open) campaigns.
-
-## Anonymous Donations
-
-Donations can be made with or without a user account:
-
-**Authenticated Donations:**
-- Automatically linked to the donor's account
-- Donor can view their donation history
-- Donor information stored in the `donor` field
-
-**Anonymous Donations:**
-- No account required
-- Donor must provide name and email
-- Optional `anonymous` flag to hide donor name publicly
-- Donor information stored in `donor_name` and `donor_email` fields
-
-When the `anonymous` flag is `true`:
-- The public API returns `"donor_name": "Anonymous"`
-- The donor's real identity is protected
-- Campaign owners can still see anonymous donations in their lists
-
-## Campaign Lifecycle & Business Logic
-
-Each campaign includes several **computed properties** that are calculated dynamically:
-
-### Dynamic Campaign Properties
-
-| Property | Description |
-| --- | --- |
-| `total_raised` | Sum of all donations for the campaign |
-| `donation_count` | Number of donations received |
-| `percentage_raised` | Percentage of goal reached (rounded to 1 decimal) |
-| `is_expired` | Whether the campaign has passed its deadline |
-| `seconds_remaining` | Time remaining until deadline (or null if no deadline) |
-
-### Campaign Deadlines
-
-Campaigns can have optional deadlines:
-- Set `has_deadline = true` and provide a `deadline` timestamp
-- The `is_expired` property automatically tracks if the deadline has passed
-- The `seconds_remaining` property shows time left in real-time
-- Parents can close campaigns manually by setting `is_open = false`
-
-**Note:** The API does not automatically close campaigns when deadlines expire. This gives parents flexibility to extend or manually close campaigns.
-
-## Step-by-Step Usage Guide
-
-### 1️⃣ Register a New Parent Account
-
-**POST** `/parents/`
-
-```json
-{
-  "username": "john_doe",
-  "email": "john@example.com",
-  "password": "securepassword123"
-}
-```
-
-**Response (201 Created):**
-
-```json
-{
-  "user": {
-    "id": 1,
-    "username": "john_doe",
-    "email": "john@example.com"
-  },
-  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "access": "eyJ0eXAiOiJKV1QiLCJhbGc..."
-}
-```
-
-The API immediately returns JWT tokens for authentication.
-
----
-
-### 2️⃣ Create a Child Profile
-
-**POST** `/parents/1/children/`
-
-**Headers:**
-```
-Authorization: Bearer <your_access_token>
-Content-Type: application/json
-```
-
-**Request Body:**
-
-```json
-{
-  "name": "Emma",
-  "date_of_birth": "2015-03-15",
-  "profile_picture": "https://example.com/emma.jpg"
-}
-```
-
-**Response (201 Created):**
-
-```json
-{
-  "id": 1,
-  "name": "Emma",
-  "date_of_birth": "2015-03-15",
-  "profile_picture": "https://example.com/emma.jpg",
-  "parent": 1
-}
-```
-
----
-
-### 3️⃣ Create a Campaign (DreamJar)
-
-**POST** `/children/1/campaigns/`
-
-**Headers:**
-```
-Authorization: Bearer <your_access_token>
-Content-Type: application/json
-```
-
-**Request Body:**
-
-```json
-{
-  "title": "Emma's Soccer Dreams",
-  "description": "Help Emma join the local soccer team and get proper equipment",
-  "goal": 500,
-  "image": "https://example.com/soccer.jpg",
-  "category": "sports",
-  "has_deadline": true,
-  "deadline": "2025-03-01T00:00:00Z",
-  "is_open": true
-}
-```
-
-**Response (201 Created):**
-
-```json
-{
-  "id": 1,
-  "title": "Emma's Soccer Dreams",
-  "description": "Help Emma join the local soccer team and get proper equipment",
-  "goal": 500,
-  "image": "https://example.com/soccer.jpg",
-  "category": "sports",
-  "has_deadline": true,
-  "deadline": "2025-03-01T00:00:00Z",
-  "is_open": true,
-  "child": 1,
-  "date_created": "2024-12-14T10:30:00Z"
-}
-```
-
----
-
-### 4️⃣ Make a Donation
-
-**Authenticated Donation:**
-
-**POST** `/campaigns/1/donations/`
-
-**Headers:**
-```
-Authorization: Bearer <your_access_token>
-Content-Type: application/json
-```
-
-**Request Body:**
-
-```json
-{
-  "amount": 50,
-  "comment": "Good luck Emma!",
-  "anonymous": false
-}
-```
-
-**Anonymous Donation (No Account):**
-
-**POST** `/campaigns/1/donations/`
-
-**Headers:**
-```
-Content-Type: application/json
-```
-
-**Request Body:**
-
-```json
-{
-  "amount": 25,
-  "comment": "Best wishes!",
-  "anonymous": true,
-  "donor_name": "A Friend",
-  "donor_email": "friend@example.com"
-}
-```
-
----
-
-### 5️⃣ Browse Public Campaigns
-
-**GET** `/campaigns/`
-
-**No authentication required**
-
-**Response (200 OK):**
-
-```json
-[
-  {
-    "id": 1,
-    "child_name": "Emma",
-    "title": "Emma's Soccer Dreams",
-    "description": "Help Emma join the local soccer team...",
-    "goal": 500,
-    "total_raised": 150,
-    "donation_count": 6,
-    "percentage_raised": 30.0,
-    "image": "https://example.com/soccer.jpg",
-    "category": "sports",
-    "is_open": true,
-    "is_expired": false,
-    "seconds_remaining": 5184000,
-    "date_created": "2024-12-14T10:30:00Z"
-  }
-]
-```
-
-**Note:** Only the child's first name is shown publicly for privacy.
-
-## User Stories
+## 7. User Stories
 
 **Parent Account Management**
 
@@ -448,16 +161,122 @@ Content-Type: application/json
 - As a registered donor, I want to view my donation history
 - As a donor, I want to know if a campaign has reached its goal
 
-## Front End Pages/Functionality
 
-### Parent Dashboard
+## 8. User Accounts & Authentication
+
+### 8.1. User Model
+
+DreamJar uses a **custom user model** (`Parent`) that extends Django's `AbstractUser`:
+
+- **Email-based authentication** (email is the USERNAME_FIELD)
+- Each parent can have **multiple children**
+- Each child can have **multiple campaigns**
+- Parents have full control over their children's profiles and campaigns
+
+### 8.2. Authentication Methods
+
+**1. JWT Token Authentication**
+
+```
+POST /api/token/
+POST /api/token/refresh/
+```
+
+Tokens must be included in the Authorization header:
+
+```
+Authorization: Bearer <your_access_token>
+```
+
+**2. Google OAuth**
+
+```
+GET /auth/google/login/
+GET /api/auth/google/callback/
+```
+
+Returns JWT tokens upon successful authentication.
+
+**3. Session Authentication**
+
+Available for development and browsable API access.
+
+## 9. User Access Rules
+
+| Action | Who Can Do It |
+| --- | --- |
+| Register a parent account | Anyone |
+| View parent profile | The parent themselves |
+| Edit parent profile | The parent themselves |
+| Create a child | The child's parent only |
+| View child details | The child's parent only |
+| Edit child details | The child's parent only |
+| Delete child | The child's parent only (no active campaigns) |
+| Create a campaign | The child's parent only |
+| View campaign (full details) | The child's parent (owner view) |
+| View campaign (limited) | Anyone (public view) |
+| Edit campaign | The campaign owner (parent) only |
+| Delete campaign | The campaign owner (parent) only |
+| Make a donation | Anyone (authenticated or anonymous) |
+| View donation history | The donor (authenticated users only) |
+| Browse public campaigns | Anyone |
+
+> **Note:** Children cannot be deleted if they have active (open) campaigns.
+
+## 10. Anonymous Donations
+
+Donations can be made with or without a user account:
+
+**Authenticated Donations:**
+- Automatically linked to the donor's account
+- Donor can view their donation history
+- Donor information stored in the `donor` field
+
+**Anonymous Donations:**
+- No account required
+- Donor must provide name and email
+- Optional `anonymous` flag to hide donor name publicly
+- Donor information stored in `donor_name` and `donor_email` fields
+
+When the `anonymous` flag is `true`:
+- The public API returns `"donor_name": "Anonymous"`
+- The donor's real identity is protected
+- Campaign owners can still see anonymous donations in their lists
+
+## 11. Campaign Logic
+
+Each campaign includes several **computed properties** that are calculated dynamically:
+
+### 11.1. Dynamic Campaign Properties
+
+| Property | Description |
+| --- | --- |
+| `total_raised` | Sum of all donations for the campaign |
+| `donation_count` | Number of donations received |
+| `percentage_raised` | Percentage of goal reached (rounded to 1 decimal) |
+| `is_expired` | Whether the campaign has passed its deadline |
+| `seconds_remaining` | Time remaining until deadline (or null if no deadline) |
+
+### 11.2. Campaign Deadlines
+
+Campaigns can have optional deadlines:
+- Set `has_deadline = true` and provide a `deadline` timestamp
+- The `is_expired` property automatically tracks if the deadline has passed
+- The `seconds_remaining` property shows time left in real-time
+- Parents can close campaigns manually by setting `is_open = false`
+
+**Note:** The API does not automatically close campaigns when deadlines expire. This gives parents flexibility to extend or manually close campaigns.
+
+## 12. Front End Pages/Functionality
+
+### 12.1. Parent Dashboard
 
 - View all children associated with the account
 - View all campaigns across all children
-- Quick access to create new child profiles
+- Quick access to create new child profiles and campaigns
 - Profile management and settings
 
-### Child Management
+### 12.2. Child Management
 
 - Create new child profiles with name, date of birth, and photo
 - View list of all children
@@ -465,7 +284,7 @@ Content-Type: application/json
 - Delete children (only if no active campaigns)
 - Age validation (must be under 16)
 
-### Campaign Management
+### 12.3. Campaign Management
 
 - Create new campaigns for each child
 - View full campaign details including all donations
@@ -475,16 +294,16 @@ Content-Type: application/json
 - Track real-time progress with percentage and total raised
 - View complete donation list with donor information
 
-### Public Campaign Browser
+### 12.4. Public Campaign Browser
 
 - Browse all open campaigns
 - Filter by category (sports, education, hobbies, health, dreams)
-- View limited campaign details (child first name only)
+- View limited campaign details (sensitive information unavailable)
 - See progress bars and funding statistics
 - View public donation list (respecting anonymous preferences)
 - Sort by newest, most funded, or closest to goal
 
-### Donation Features
+### 12.5. Donation Features
 
 - Donate with or without an account
 - Leave optional comments
@@ -493,9 +312,9 @@ Content-Type: application/json
 - Receive confirmation after donation
 - Cannot donate to closed campaigns
 
-## API Specification
+## 13. API Specification
 
-### Authentication
+### 13.1. Authentication
 
 | URL | Method | Purpose | Request Body | Response | Auth |
 | --- | --- | --- | --- | --- | --- |
@@ -504,7 +323,7 @@ Content-Type: application/json
 | `/auth/google/login/` | GET | Initiate Google OAuth | — | Redirect to Google | Public |
 | `/api/auth/google/callback/` | GET | Google OAuth callback | — | `{ "user", "access", "refresh" }` | Public |
 
-### Parents (Users)
+### 13.2. Parents (Users)
 
 | URL | Method | Purpose | Request Body | Response | Auth |
 | --- | --- | --- | --- | --- | --- |
@@ -512,7 +331,7 @@ Content-Type: application/json
 | `/parents/<id>/` | GET | Get parent profile | — | **200** | Self only |
 | `/parents/<id>/` | PUT | Update parent profile | `{ "username?", "email?", ... }` | **200** | Self only |
 
-### Children
+### 13.3. Children
 
 | URL | Method | Purpose | Request Body | Response | Auth |
 | --- | --- | --- | --- | --- | --- |
@@ -522,7 +341,7 @@ Content-Type: application/json
 | `/children/<id>/` | PUT | Update child | `{ "name?", "date_of_birth?", "profile_picture?" }` | **200** | Parent only |
 | `/children/<id>/` | DELETE | Delete child | — | **204** | Parent only (no active campaigns) |
 
-### Campaigns
+### 13.4. Campaigns
 
 | URL | Method | Purpose | Request Body | Response | Auth |
 | --- | --- | --- | --- | --- | --- |
@@ -533,7 +352,7 @@ Content-Type: application/json
 | `/campaigns/<id>/` | PUT | Update campaign | `{ "title?", "description?", "goal?", "is_open?", ... }` | **200** | Owner only |
 | `/campaigns/<id>/` | DELETE | Delete campaign | — | **204** | Owner only |
 
-### Donations
+### 13.5. Donations
 
 | URL | Method | Purpose | Request Body | Response | Auth |
 | --- | --- | --- | --- | --- | --- |
@@ -543,9 +362,10 @@ Content-Type: application/json
 
 \* Required for anonymous (non-authenticated) donations
 
-## Database Schema
 
-### Parent (Custom User Model)
+## 14. Database Schema
+
+### 14.1. Parent (Custom User Model)
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -564,7 +384,7 @@ Content-Type: application/json
 
 ---
 
-### Child
+### 14.2. Child
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -584,7 +404,7 @@ Content-Type: application/json
 
 ---
 
-### Campaign
+### 14.3. Campaign
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -613,7 +433,7 @@ Content-Type: application/json
 
 ---
 
-### Donation
+### 14.4. Donation
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -641,77 +461,39 @@ Content-Type: application/json
 
 **Entity Relationship Diagram:**
 
-```
-Parent (User)
-    │
-    │ (1:N)
-    │
-    └──> Child
-            │
-            │ (1:N)
-            │
-            └──> Campaign
-                    │
-                    │ (1:N)
-                    │
-                    └──> Donation
-                            │
-                            │ (N:1, optional)
-                            │
-                            └──> Parent (as donor)
-```
-
-## Deployed Project
-
-🔗 **Live API:**  
-`https://your-deployed-url.herokuapp.com`
-
-_(Add your deployment URL here once deployed)_
+<img src="img/dreamjar_erd.svg" width=1000 height=600>
 
 ---
 
-## Insomnia API Testing Evidence
+## 15. Insomnia API Testing Evidence
 
 The following screenshots demonstrate successful API interactions using Insomnia.
 
-### Successful GET Request
+### 15.1. Successful GET Request
 
 Example: Retrieving public campaigns
 
-![Insomnia GET request](docs/GET_campaigns.png)
+![Insomnia GET request](img/getcampaigns.gif)
 
 ---
 
-### Successful POST Request
+### 15.2. Successful POST Request
 
-Example: Creating a new child profile
+Example: Creating a new campaign for your child
 
-![Insomnia POST request](docs/POST_child.png)
+![Insomnia POST request](img/newcampaign.gif)
 
 ---
 
-### Token Authentication Response
+### 15.3. Token Authentication Response
 
 Example: Obtaining JWT tokens after parent registration
 
-![Insomnia token response](docs/Token_response.png)
+![Insomnia token response](img/newuserauth.gif)
 
----
+### 15.4. Google OAuth Response
 
-## Security Considerations
-
-- **Password Security:** All passwords are hashed using Django's built-in authentication system
-- **JWT Token Authentication:** Secure token-based authentication with access and refresh tokens
-- **Object-Level Permissions:** Parents can only access and modify their own children and campaigns
-- **Child Privacy:** Only first names are exposed in public API responses
-- **Child Safety:** Age validation ensures only children under 16 can have profiles
-- **Campaign Protection:** Children cannot be deleted if they have active campaigns
-- **Donation Privacy:** Anonymous donations hide donor identity at the API level
-- **CORS Configuration:** Proper CORS headers for secure frontend integration
-- **Environment Variables:** Sensitive credentials stored in environment variables
-- **SQL Injection Protection:** Django ORM prevents SQL injection attacks
-- **CSRF Protection:** Django middleware protects against cross-site request forgery
-- **Rate Limiting:** Consider implementing rate limiting for production (not included in current version)
+![Google OAuth response](img/googleauth.gif)
 
 ---
 
