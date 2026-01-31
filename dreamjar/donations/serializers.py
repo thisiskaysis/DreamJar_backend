@@ -7,7 +7,7 @@ class DonationSerializer(serializers.ModelSerializer):
     Handles both authenticated and anonymous donations
     Used for creating donations and showing full details to campaign owners
     """
-    doner_name = serializers.SerializerMethodField()
+    donor_name = serializers.SerializerMethodField()
     
     class Meta:
         model = apps.get_model('donations.Donation')
