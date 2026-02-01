@@ -107,6 +107,8 @@ AUTH_USER_MODEL = 'users.Parent'
 
 LOGIN_REDIRECT_URL = '/api/auth/google/callback/'
 
+SOCIALACCOUNT_LOGIN_ON_GET = True
+
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_LOGIN_METHODS = {'email'}
