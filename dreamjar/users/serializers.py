@@ -1,24 +1,10 @@
 from rest_framework import serializers
 from datetime import date
 from .models import Parent, Child
-
-class ParentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Parent
-        fields = ['id', 'username', 'email', 'first_name', 'last_name']
-        extra_kwargs = {
-            'password': {'write_only': True, 'min_length': 8}
-        } #added min length for password field
-
-    def create(self, validated_data):
-        return Parent.objects.create_user(**validated_data)
-    
-    def validate_username(self, value):
-        if len(value) < 3:
-            raise serializers.ValidationError("Username must be at least 3 characters long.")
-        return value
-    
+from campaigns.serializers import CampaignSerializer    
 class ChildSerializer(serializers.ModelSerializer):
+    campaigns = CampaignSerializer(many=True, read_only=True)
+    age = serializers.SerializerMethodField()
     class Meta:
         model = Child
         fields = '__all__'
@@ -42,4 +28,29 @@ class ChildSerializer(serializers.ModelSerializer):
         
         if age > 16:
             raise serializers.ValidationError("Child must be under 16 years.")
+        return value
+    
+    def get_age(self, obj):
+        if obj.date_of_birth:
+            today = date.today()
+            return today.year - obj.date_of_birth.year - (
+                (today.month, today.day) < (obj.date_of_birth.month, obj.date_of_birth.day)
+            )
+        return None
+    
+class ParentSerializer(serializers.ModelSerializer):
+    children = ChildSerializer(many=True, read_only=True)
+    class Meta:
+        model = Parent
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'children']
+        extra_kwargs = {
+            'password': {'write_only': True, 'min_length': 8}
+        } #added min length for password field
+
+    def create(self, validated_data):
+        return Parent.objects.create_user(**validated_data)
+    
+    def validate_username(self, value):
+        if len(value) < 3:
+            raise serializers.ValidationError("Username must be at least 3 characters long.")
         return value
