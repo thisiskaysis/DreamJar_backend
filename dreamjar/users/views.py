@@ -201,3 +201,15 @@ class GoogleLoginCallback(APIView):
             "access": str(refresh.access_token),
             "refresh": str(refresh)
         })
+    
+class CurrentUserView(APIView):
+    """Returns the currently logged-in user based on JWT token"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            parent = request.user
+            serializer = ParentSerializer(parent)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Parent.DoesNotExist:
+            return Response({"detail": "Parent not found."}, status=status.HTTP_404_NOT_FOUND)

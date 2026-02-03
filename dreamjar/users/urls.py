@@ -6,5 +6,6 @@ urlpatterns = [
     path('parents/<int:pk>/', views.ParentDetail.as_view()),
     path('parents/<int:pk>/children/', views.ChildList.as_view()),
     path('children/<int:pk>/', views.ChildDetail.as_view()),
-    path('api/auth/google/callback/', views.GoogleLoginCallback.as_view(), name='google_login_landing')
+    path('api/auth/google/callback/', views.GoogleLoginCallback.as_view(), name='google_login_landing'),
+    path('parents/me/', views.CurrentUserView.as_view()),
 ]

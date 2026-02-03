@@ -5,7 +5,7 @@ from .models import Parent, Child
 class ParentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parent
-        fields = '__all__'
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 8}
         } #added min length for password field
