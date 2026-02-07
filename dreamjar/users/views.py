@@ -159,7 +159,7 @@ class ChildDetail(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        active_campaigns = child.owned_campaigns.filter(is_open=True).count()
+        active_campaigns = child.campaigns.filter(is_open=True).count()
         if active_campaigns > 0:
             return Response(
                 {'detail': "Cannot delete child with active campaigns."},
