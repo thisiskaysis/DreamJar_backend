@@ -24,7 +24,7 @@ class Campaign(models.Model):
     child = models.ForeignKey(
         Child,
         on_delete=models.CASCADE,
-        related_name='owned_campaigns'
+        related_name='campaigns'
     )
 
     # Optional deadline
