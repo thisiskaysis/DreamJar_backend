@@ -42,7 +42,7 @@ class ParentSerializer(serializers.ModelSerializer):
     children = ChildSerializer(many=True, read_only=True)
     class Meta:
         model = Parent
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'children']
+        fields = '__all__'
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 8}
         } #added min length for password field
