@@ -16,6 +16,12 @@ class Child(models.Model):
     name = models.CharField(max_length=100)
     date_of_birth = models.DateField(null=True, blank=True)
     profile_picture = models.URLField(max_length=200, null=True, blank=True)
+    gender = models.CharField(max_length=50,
+                              choices=[
+                                  ('male', 'Male'),
+                                  ('female', 'Female'),
+                                  ('prefer not to say', 'Prefer not to say')
+                              ])
     
     def __str__(self):
         return self.name
