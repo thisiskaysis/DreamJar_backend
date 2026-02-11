@@ -29,6 +29,9 @@ class CampaignDonationList(APIView):
         2. Anonymous users can make donations by providing their name and email.
         """
         campaign = self.get_object(pk)
+        print("Request user:", request.user)
+        print("Is authenticated:", request.user.is_authenticated)
+        print("Data:", request.data)
 
         if not campaign.is_open:
             return Response(
