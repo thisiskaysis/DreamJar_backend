@@ -9,6 +9,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     Shows full details including child info
     Used when parents view/manage their own children's campaigns
     """
+    child_name = serializers.CharField(source="child.name", read_only=True)
     class Meta:
         model = Campaign
         fields = '__all__'

@@ -1,7 +1,16 @@
 from rest_framework import serializers
 from django.apps import apps
+from campaigns.models import Campaign
 
+
+class NestedCampaignSerializer(serializers.ModelSerializer):
+    child_name = serializers.CharField(source="child.name", read_only=True)
+    class Meta:
+        model = Campaign
+        fields = ['id', 'title', 'description', 'goal', 'child_name']
+        
 class DonationSerializer(serializers.ModelSerializer):
+    campaign = NestedCampaignSerializer(read_only=True)
     class Meta:
         model = apps.get_model('donations.Donation')
         fields = '__all__'
