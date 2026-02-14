@@ -67,6 +67,18 @@ class ParentDetail(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
             )
+        
+    def delete(self, request, pk):
+        parent = self.get_object(pk)
+    
+        if request.user != parent:
+            return Response(
+                {"detail": "You don't have permission to delete this account."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+            
+        parent.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class ChildList(APIView):
     permission_classes = [permissions.IsAuthenticated]
