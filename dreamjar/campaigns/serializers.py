@@ -10,6 +10,8 @@ class CampaignSerializer(serializers.ModelSerializer):
     Used when parents view/manage their own children's campaigns
     """
     child_name = serializers.CharField(source="child.name", read_only=True)
+    total_raised = serializers.ReadOnlyField()
+    percentage_raised = serializers.ReadOnlyField()
     class Meta:
         model = Campaign
         fields = '__all__'
