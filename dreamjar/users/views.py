@@ -219,9 +219,6 @@ class CurrentUserView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        try:
-            parent = request.user
-            serializer = ParentSerializer(parent)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Parent.DoesNotExist:
-            return Response({"detail": "Parent not found."}, status=status.HTTP_404_NOT_FOUND)
+        parent = request.user
+        serializer = ParentSerializer(parent)
+        return Response(serializer.data, status=status.HTTP_200_OK)
