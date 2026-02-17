@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import Http404, HttpResponse
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -192,37 +192,19 @@ class GoogleLoginCallback(APIView):
         user = request.user
         
         if not user.is_authenticated:
-            return Response(
-                {
-                    'error': 'Authentication failed',
-                    'detail': 'User not authenticated after OAuth callback'
-                }, 
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+            return redirect(f"https://dreamjar.netlify.app/login?error=oauth_failed")
+
         
         refresh = RefreshToken.for_user(user)
-        access = str(refresh.access_token)
+        access_token = str(refresh.access_token)
         refresh_token = str(refresh)
         
-        html = f"""
-        <html>
-            <body>
-                <script>
-                    window.opener.postMessage(
-                        {{
-                            type: "google-auth-success",
-                            access: "{access}",
-                            refresh: "{refresh_token}"
-                        }},
-                        "*"
-                    );
-                    window.close();
-                </script>
-            </body>
-        </html>
-        """
+        redirect_url = (
+            f"https://dreamjar.netlify.app/oauth/google/callback?"
+            f"access={access_token}&refresh={refresh_token}&login_success=true"
+        )
 
-        return HttpResponse(html)
+        return redirect(redirect_url)
     
 class CurrentUserView(APIView):
     """Returns the currently logged-in user based on JWT token"""
