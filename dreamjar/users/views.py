@@ -1,5 +1,5 @@
-from django.shortcuts import render, redirect
-from django.http import Http404, HttpResponse
+from django.shortcuts import redirect
+from django.http import Http404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -7,6 +7,10 @@ from rest_framework.views import APIView
 from rest_framework import status, permissions
 from .models import Parent, Child
 from .serializers import ParentSerializer, ChildSerializer
+from allauth.socialaccount.models import SocialToken, SocialAccount
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 # Create your views here.
 class ParentList(APIView):
@@ -188,18 +192,32 @@ class GoogleLoginCallback(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
+        print(f"GoogleLoginCallback HIT - user: {request.user}, auth: {request.user.is_authenticated}")
+
         #User should be authenticated by allauth at this point
         user = request.user
         
-        print(f"GoogleLoginCallback hit - user: {user}, authenticated: {user.is_authenticated}")
-        
         if not user.is_authenticated:
+            user_id = request.session.get('_auth_user_id')
+            print(f"Session user_id: {user_id}")
+            if user_id:
+                try:
+                    user = User.objects.get(pk=user_id)
+                except User.DoesNotExist:
+                    pass
+                
+        if not user or not user.is_authenticated and not hasattr(user, 'pk'):
+            print("No user found, redirecting to error")
             return redirect(f"https://dreamjar.netlify.app/login?error=oauth_failed")
-
-        
-        refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
+            
+        try:
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+            print(f"Generated tokens for user: {user.email}")
+        except Exception as e:
+            print(f"Token generation failed: {e}")
+            return redirect("https://dreamjar.netlify.app/login?error=token_failed")
         
         redirect_url = (
             f"https://dreamjar.netlify.app/oauth/google/callback?"

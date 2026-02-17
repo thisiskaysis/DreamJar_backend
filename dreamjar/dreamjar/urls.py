@@ -16,12 +16,18 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponse
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+def test_callback(request):
+    print("TEST CALLBACK HIT")
+    return HttpResponse("callback reached")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/google/callback/', test_callback),
     path('auth/', include('allauth.urls')),
     path('', include('users.urls')),
     path('', include('campaigns.urls')),
