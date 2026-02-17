@@ -7,10 +7,11 @@ from rest_framework.views import APIView
 from rest_framework import status, permissions
 from .models import Parent, Child
 from .serializers import ParentSerializer, ChildSerializer
-from allauth.socialaccount.models import SocialToken, SocialAccount
 from django.contrib.auth import get_user_model
+import logging
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 # Create your views here.
 class ParentList(APIView):
@@ -192,31 +193,26 @@ class GoogleLoginCallback(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        print(f"GoogleLoginCallback HIT - user: {request.user}, auth: {request.user.is_authenticated}")
-
         #User should be authenticated by allauth at this point
         user = request.user
         
         if not user.is_authenticated:
             user_id = request.session.get('_auth_user_id')
-            print(f"Session user_id: {user_id}")
             if user_id:
                 try:
                     user = User.objects.get(pk=user_id)
                 except User.DoesNotExist:
                     pass
                 
-        if not user or not user.is_authenticated and not hasattr(user, 'pk'):
-            print("No user found, redirecting to error")
-            return redirect(f"https://dreamjar.netlify.app/login?error=oauth_failed")
+        if not user or not user.is_authenticated:
+            return redirect("https://dreamjar.netlify.app/login?error=oauth_failed")
             
         try:
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-            print(f"Generated tokens for user: {user.email}")
         except Exception as e:
-            print(f"Token generation failed: {e}")
+            logger.error(f"Token generation failed for user {user.email}: {e}")
             return redirect("https://dreamjar.netlify.app/login?error=token_failed")
         
         redirect_url = (
