@@ -111,7 +111,7 @@ SIMPLE_JWT = {
 
 AUTH_USER_MODEL = 'users.Parent'
 
-LOGIN_REDIRECT_URL = 'https://dreamjar.netlify.app/oauth/google/callback'
+LOGIN_REDIRECT_URL = '/api/auth/google/callback/'
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 
