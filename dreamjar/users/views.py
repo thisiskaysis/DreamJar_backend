@@ -191,6 +191,8 @@ class GoogleLoginCallback(APIView):
         #User should be authenticated by allauth at this point
         user = request.user
         
+        print(f"GoogleLoginCallback hit - user: {user}, authenticated: {user.is_authenticated}")
+        
         if not user.is_authenticated:
             return redirect(f"https://dreamjar.netlify.app/login?error=oauth_failed")
 
