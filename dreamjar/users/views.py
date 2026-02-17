@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -201,18 +201,28 @@ class GoogleLoginCallback(APIView):
             )
         
         refresh = RefreshToken.for_user(user)
+        access = str(refresh.access_token)
+        refresh_token = str(refresh)
+        
+        html = f"""
+        <html>
+            <body>
+                <script>
+                    window.opener.postMessage(
+                        {{
+                            type: "google-auth-success",
+                            access: "{access}",
+                            refresh: "{refresh_token}"
+                        }},
+                        "*"
+                    );
+                    window.close();
+                </script>
+            </body>
+        </html>
+        """
 
-        return Response({
-            "user": {
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "email": user.email,
-                "username": user.username
-            },
-            "access": str(refresh.access_token),
-            "refresh": str(refresh)
-        })
+        return HttpResponse(html)
     
 class CurrentUserView(APIView):
     """Returns the currently logged-in user based on JWT token"""
